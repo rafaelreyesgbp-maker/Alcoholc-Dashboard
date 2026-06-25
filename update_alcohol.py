@@ -284,12 +284,14 @@ def update_html(computed: dict, html_path: str) -> None:
     with open(html_path, "r", encoding="utf-8") as f:
         html = f.read()
 
-    # Cargar datos existentes
+    # Cargar datos existentes (filtrar claves inválidas como "202606")
     existing = {}
     m = re.search(r"let allData\s*=\s*(\{.*?\});", html, re.DOTALL)
     if m:
         try:
-            existing = json.loads(m.group(1))
+            raw_existing = json.loads(m.group(1))
+            existing = {k: v for k, v in raw_existing.items()
+                        if k.isdigit() and 1 <= int(k) <= 12}
         except Exception:
             pass
 
