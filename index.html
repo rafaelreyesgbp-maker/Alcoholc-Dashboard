@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard IVFBCA 2026 | AAFY</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy:    #1a2744;
+      --teal:    #1d6a72;
+      --teal-lt: #e8f5f6;
+      --amber:   #b45309;
+      --amber-lt:#fef3c7;
+      --green:   #166534;
+      --green-lt:#dcfce7;
+      --red:     #991b1b;
+      --red-lt:  #fee2e2;
+      --gray:    #6b7280;
+      --border:  #e5e7eb;
+      --bg:      #f3f4f6;
+      --white:   #ffffff;
+      --text:    #111827;
+    }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--navy);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-left h1 { font-size: 15px; font-weight: 700; line-height: 1.3; }
+    .header-left p  { font-size: 12px; opacity: .75; margin-top: 2px; }
+    .header-right   { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    select#mesSelector {
+      background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3);
+      border-radius: 6px; padding: 6px 10px; font-size: 13px; cursor: pointer;
+    }
+    select#mesSelector option { background: var(--navy); }
+    .btn-actualizar {
+      background: #2d6a4f; color: #fff; border: none; border-radius: 6px;
+      padding: 7px 14px; font-size: 13px; cursor: pointer; font-weight: 600;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .btn-actualizar:hover { background: #1b4332; }
+    #lastUpdatedBadge { font-size: 11px; opacity: .65; }
+
+    /* ── LAYOUT ── */
+    main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── KPI CARDS ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .kpi-card {
+      background: var(--white); border-radius: 10px; padding: 18px 20px;
+      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray); font-weight: 600; }
+    .kpi-value { font-size: 26px; font-weight: 700; margin-top: 6px; line-height: 1; }
+    .kpi-sub   { font-size: 11px; color: var(--gray); margin-top: 4px; }
+    .kpi-card.real      .kpi-value { color: var(--teal); }
+    .kpi-card.meta      .kpi-value { color: var(--navy); }
+    .kpi-card.proyeccion .kpi-value { color: #7c3aed; }
+    .kpi-card.omisos    .kpi-value { color: var(--amber); }
+
+    /* ── YTD CARD ── */
+    .ytd-card {
+      background: var(--white); border-radius: 10px; padding: 18px 24px;
+      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      margin-bottom: 20px;
+    }
+    .ytd-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+    .ytd-title  { font-size: 13px; font-weight: 700; color: var(--navy); }
+    .ytd-pct    { font-size: 22px; font-weight: 700; color: var(--teal); }
+    .ytd-bar-track { background: var(--border); border-radius: 99px; height: 12px; overflow: hidden; }
+    .ytd-bar-fill  { background: var(--teal); height: 100%; border-radius: 99px; transition: width .5s; }
+    .ytd-meta { display: flex; gap: 24px; margin-top: 10px; font-size: 12px; color: var(--gray); }
+    .ytd-meta span b { color: var(--text); }
+
+    /* ── AVANCE VS META ── */
+    .section-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
+    .avance-card {
+      background: var(--white); border-radius: 10px; padding: 18px 24px;
+      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      margin-bottom: 20px;
+    }
+    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .bar-mes-label { width: 90px; font-size: 12px; color: var(--gray); text-align: right; flex-shrink: 0; }
+    .bar-track { flex: 1; background: var(--border); border-radius: 99px; height: 18px; overflow: hidden; position: relative; }
+    .bar-real  { height: 100%; background: var(--teal); border-radius: 99px; position: absolute; left: 0; top: 0; }
+    .bar-omiso { height: 100%; background: #d97706; border-radius: 99px; position: absolute; top: 0; }
+    .bar-meta-line {
+      position: absolute; top: 0; height: 100%; width: 2px;
+      background: var(--navy); opacity: .5;
+    }
+    .bar-pct-label { width: 48px; font-size: 11px; color: var(--gray); }
+
+    /* ── SEGMENTOS GRID ── */
+    .seg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
+    .seg-card {
+      border-radius: 10px; padding: 16px 18px;
+      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
+    }
+    .seg-card.alta        { background: var(--red-lt);    border-color: #fca5a5; }
+    .seg-card.media       { background: var(--amber-lt);  border-color: #fcd34d; }
+    .seg-card.seguimiento { background: #eff6ff;           border-color: #bfdbfe; }
+    .seg-card.total       { background: #faf5ff;           border-color: #d8b4fe; }
+    .seg-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .seg-card.alta        .seg-label { color: var(--red); }
+    .seg-card.media       .seg-label { color: var(--amber); }
+    .seg-card.seguimiento .seg-label { color: #1d4ed8; }
+    .seg-card.total       .seg-label { color: #6d28d9; }
+    .seg-count { font-size: 30px; font-weight: 700; margin: 6px 0 2px; }
+    .seg-card.alta        .seg-count { color: var(--red); }
+    .seg-card.media       .seg-count { color: var(--amber); }
+    .seg-card.seguimiento .seg-count { color: #1d4ed8; }
+    .seg-card.total       .seg-count { color: #6d28d9; }
+    .seg-est { font-size: 11px; color: var(--gray); }
+
+    /* ── TABLA DE OMISOS ── */
+    .tabla-card {
+      background: var(--white); border-radius: 10px; padding: 18px 24px;
+      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
+      margin-bottom: 20px;
+    }
+    .tabla-controls { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .tabla-controls input, .tabla-controls select {
+      border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
+      font-size: 13px; background: var(--bg); color: var(--text);
+    }
+    .tabla-controls input { flex: 1; min-width: 200px; }
+    .export-btns { margin-left: auto; display: flex; gap: 8px; }
+    .btn-exp {
+      border: 1px solid var(--border); background: var(--white); border-radius: 6px;
+      padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 600; color: var(--navy);
+    }
+    .btn-exp:hover { background: var(--bg); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: var(--bg); color: var(--gray); font-weight: 600; font-size: 11px;
+         text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; text-align: left;
+         cursor: pointer; border-bottom: 1px solid var(--border); user-select: none; }
+    th:hover { color: var(--navy); }
+    td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;
+    }
+    .badge.Alta        { background: var(--red-lt);   color: var(--red); }
+    .badge.Media       { background: var(--amber-lt); color: var(--amber); }
+    .badge.Seguimiento { background: #eff6ff;          color: #1d4ed8; }
+    .pagination { display: flex; gap: 6px; justify-content: center; margin-top: 14px; align-items: center; font-size: 12px; }
+    .page-btn {
+      border: 1px solid var(--border); background: var(--white); border-radius: 5px;
+      padding: 4px 9px; cursor: pointer; font-size: 12px;
+    }
+    .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+    .page-btn:hover:not(.active) { background: var(--bg); }
+    .no-data { text-align: center; padding: 30px; color: var(--gray); }
+
+    /* ── SPINNER ── */
+    .spinner {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
+      z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    }
+    .spinner.show { display: flex; }
+    .spinner-ring {
+      width: 48px; height: 48px; border: 5px solid rgba(255,255,255,.3);
+      border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite;
+    }
+    .spinner-msg { color: #fff; font-size: 14px; font-weight: 600; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media print {
+      header, .tabla-controls, .export-btns, .pagination { display: none !important; }
+      main { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ DATOS EMBEBIDOS (reemplazados por update_alcohol.py) ════════ -->
+<script>
+let allData = {};
+var lastUpdated = '';
+
+const FOLDER_ID    = "1sqAqz7fBqOPhHkNHUXIQ-apDNj0FvOfz";
+const API_KEY      = "AIzaSyAId7gthv7EEzmaTrfbt07FK4Kf-ii51uM";
+const YEAR         = 2026;
+const MONTHLY_GOALS = [5971005,2033044,2357586,2380846,2204240,2495661,2249735,2324560,2360836,3233310,3540960,4050214];
+const MESES        = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const MESES_ES_NORM = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+const ALTA_MIN     = 50000;
+const MEDIA_MIN    = 10000;
+</script>
+
+<!-- ════════════ HTML ════════════════════════════════════════════════════════ -->
+<header>
+  <div class="header-left">
+    <h1>Impuesto a la Venta Final de Bebidas con Contenido Alcohólico — 2026</h1>
+    <p>AAFY &nbsp;·&nbsp; Dashboard de Proyección de Cierre</p>
+  </div>
+  <div class="header-right">
+    <select id="mesSelector"></select>
+    <button class="btn-actualizar" onclick="fetchFromDrive()">
+      ↻ Actualizar
+    </button>
+    <span id="lastUpdatedBadge"></span>
+  </div>
+</header>
+
+<div class="spinner" id="spinner">
+  <div class="spinner-ring"></div>
+  <div class="spinner-msg" id="spinnerMsg">Cargando datos de Drive…</div>
+</div>
+
+<main>
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card real">
+      <div class="kpi-label">Acumulado Real</div>
+      <div class="kpi-value" id="kpiReal">—</div>
+      <div class="kpi-sub" id="kpiRealSub"></div>
+    </div>
+    <div class="kpi-card meta">
+      <div class="kpi-label">Meta del Mes</div>
+      <div class="kpi-value" id="kpiMeta">—</div>
+      <div class="kpi-sub" id="kpiMetaSub"></div>
+    </div>
+    <div class="kpi-card proyeccion">
+      <div class="kpi-label">Proyección de Cierre</div>
+      <div class="kpi-value" id="kpiProy">—</div>
+      <div class="kpi-sub" id="kpiProySub"></div>
+    </div>
+    <div class="kpi-card omisos">
+      <div class="kpi-label">Omisos Detectados</div>
+      <div class="kpi-value" id="kpiOmisos">—</div>
+      <div class="kpi-sub" id="kpiOmisosSub"></div>
+    </div>
+  </div>
+
+  <!-- YTD -->
+  <div class="ytd-card">
+    <div class="ytd-header">
+      <span class="ytd-title">Recaudación Anual Acumulada (YTD)</span>
+      <span class="ytd-pct" id="ytdPct">0%</span>
+    </div>
+    <div class="ytd-bar-track">
+      <div class="ytd-bar-fill" id="ytdBar" style="width:0%"></div>
+    </div>
+    <div class="ytd-meta">
+      <span>Real YTD: <b id="ytdReal">$0</b></span>
+      <span>Meta YTD: <b id="ytdMetaVal">$0</b></span>
+      <span>Diferencia: <b id="ytdDiff">$0</b></span>
+    </div>
+  </div>
+
+  <!-- AVANCE VS META -->
+  <div class="avance-card">
+    <div class="section-title">Avance vs Meta por Mes</div>
+    <div id="avanceBars"></div>
+  </div>
+
+  <!-- SEGMENTOS -->
+  <div class="section-title">Segmentos de Omisos — Mes Seleccionado</div>
+  <div class="seg-grid">
+    <div class="seg-card alta">
+      <div class="seg-label">Alta Prioridad</div>
+      <div class="seg-count" id="segAltaCount">0</div>
+      <div class="seg-est" id="segAltaEst">Estimado: $0</div>
+    </div>
+    <div class="seg-card media">
+      <div class="seg-label">Media Prioridad</div>
+      <div class="seg-count" id="segMediaCount">0</div>
+      <div class="seg-est" id="segMediaEst">Estimado: $0</div>
+    </div>
+    <div class="seg-card seguimiento">
+      <div class="seg-label">Seguimiento</div>
+      <div class="seg-count" id="segSegCount">0</div>
+      <div class="seg-est">Monitoreo preventivo</div>
+    </div>
+    <div class="seg-card total">
+      <div class="seg-label">Omisos Totales</div>
+      <div class="seg-count" id="segTotal">0</div>
+      <div class="seg-est" id="segTotalEst">Exposición total: $0</div>
+    </div>
+  </div>
+
+  <!-- TABLA DE OMISOS -->
+  <div class="tabla-card">
+    <div class="section-title">Detalle de Omisos</div>
+    <div class="tabla-controls">
+      <input type="text" id="searchInput" placeholder="Buscar por RFC o nombre…" oninput="renderTable()">
+      <select id="filtroSegmento" onchange="renderTable()">
+        <option value="">Todos los segmentos</option>
+        <option value="Alta">Alta</option>
+        <option value="Media">Media</option>
+        <option value="Seguimiento">Seguimiento</option>
+      </select>
+      <div class="export-btns">
+        <button class="btn-exp" onclick="exportXLSX()">⬇ Excel</button>
+        <button class="btn-exp" onclick="exportPNG()">🖼 PNG</button>
+        <button class="btn-exp" onclick="window.print()">🖨 PDF</button>
+      </div>
+    </div>
+    <table id="omisosTable">
+      <thead>
+        <tr>
+          <th onclick="sortBy('rfc')">RFC ↕</th>
+          <th onclick="sortBy('nombre')">Nombre ↕</th>
+          <th onclick="sortBy('segment')">Segmento ↕</th>
+          <th onclick="sortBy('ref_avg')" style="text-align:right">Prom. Ref. ↕</th>
+          <th onclick="sortBy('ref_months')" style="text-align:right">Meses Ref. ↕</th>
+        </tr>
+      </thead>
+      <tbody id="omisosBody"></tbody>
+    </table>
+    <div class="no-data" id="noData" style="display:none">Sin omisos para los filtros seleccionados.</div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</main>
+
+<!-- ════════════ JAVASCRIPT ════════════════════════════════════════════════════ -->
+<script>
+// ── Estado ──────────────────────────────────────────────────────────────────
+let currentMes   = null;
+let currentOmisos = [];
+let sortCol      = 'ref_avg';
+let sortAsc      = false;
+let currentPage  = 1;
+const PAGE_SIZE  = 15;
+
+// ── Formato ─────────────────────────────────────────────────────────────────
+const fmt = n => '$' + (n||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0});
+const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '—';
+
+// ── Inicialización ───────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  // Poblar selector de mes
+  const sel = document.getElementById('mesSelector');
+  const months = Object.keys(allData).sort();
+
+  if (months.length === 0) {
+    // Sin datos aún: mostrar todos los meses del año
+    MESES.forEach((m, i) => {
+      const key = `${YEAR}${String(i+1).padStart(2,'0')}`;
+      const opt = document.createElement('option');
+      opt.value = key; opt.textContent = `${m} ${YEAR}`;
+      sel.appendChild(opt);
+    });
+    sel.value = `${YEAR}01`;
+  } else {
+    months.forEach(k => {
+      const idx = parseInt(k.slice(4)) - 1;
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = `${MESES[idx]} ${YEAR}`;
+      sel.appendChild(opt);
+    });
+    sel.value = months[months.length - 1]; // último mes disponible
+  }
+
+  sel.addEventListener('change', () => { currentPage = 1; renderAll(); });
+
+  if (lastUpdated) document.getElementById('lastUpdatedBadge').textContent = 'Actualizado: ' + lastUpdated;
+
+  renderAll();
+});
+
+// ── Render principal ─────────────────────────────────────────────────────────
+function renderAll() {
+  const sel  = document.getElementById('mesSelector');
+  currentMes = sel.value;
+  const idx  = parseInt(currentMes.slice(4)) - 1;
+  const data = allData[currentMes] || {};
+  const goal = MONTHLY_GOALS[idx] || 0;
+
+  const real    = data.real || 0;
+  const proy    = data.proyeccion || real;
+  const omisos  = data.omisos || [];
+  const total_o = data.total_omisos || 0;
+
+  // KPI cards
+  document.getElementById('kpiReal').textContent    = fmt(real);
+  document.getElementById('kpiRealSub').textContent = `Meta: ${fmt(goal)} · ${pct(real,goal)} cumplido`;
+  document.getElementById('kpiMeta').textContent    = fmt(goal);
+  document.getElementById('kpiMetaSub').textContent = `${MESES[idx]} ${YEAR}`;
+  document.getElementById('kpiProy').textContent    = fmt(proy);
+  document.getElementById('kpiProySub').textContent = proy >= goal ? '✓ Alcanza meta' : `Brecha: ${fmt(goal - proy)}`;
+  document.getElementById('kpiOmisos').textContent  = total_o;
+  document.getElementById('kpiOmisosSub').textContent = `Alta: ${data.alta_count||0}  Media: ${data.media_count||0}  Seg: ${data.seguimiento_count||0}`;
+
+  // YTD
+  const months = Object.keys(allData).sort();
+  let ytdReal = 0, ytdGoal = 0;
+  months.forEach(k => {
+    const i = parseInt(k.slice(4)) - 1;
+    ytdReal += allData[k].real || 0;
+    ytdGoal += MONTHLY_GOALS[i] || 0;
+  });
+  const ytdP = ytdGoal ? Math.min((ytdReal/ytdGoal)*100, 100) : 0;
+  document.getElementById('ytdPct').textContent   = ytdP.toFixed(1) + '%';
+  document.getElementById('ytdBar').style.width   = ytdP + '%';
+  document.getElementById('ytdReal').textContent  = fmt(ytdReal);
+  document.getElementById('ytdMetaVal').textContent = fmt(ytdGoal);
+  document.getElementById('ytdDiff').textContent  = fmt(ytdReal - ytdGoal);
+
+  // Barras avance
+  renderAvanceBars(months);
+
+  // Segmentos
+  document.getElementById('segAltaCount').textContent  = data.alta_count || 0;
+  document.getElementById('segAltaEst').textContent    = 'Estimado: ' + fmt(data.alta_est || 0);
+  document.getElementById('segMediaCount').textContent = data.media_count || 0;
+  document.getElementById('segMediaEst').textContent   = 'Estimado: ' + fmt(data.media_est || 0);
+  document.getElementById('segSegCount').textContent   = data.seguimiento_count || 0;
+  document.getElementById('segTotal').textContent      = total_o;
+  document.getElementById('segTotalEst').textContent   = 'Exposición: ' + fmt((data.alta_est||0)+(data.media_est||0));
+
+  // Tabla
+  currentOmisos = omisos;
+  currentPage   = 1;
+  renderTable();
+}
+
+// ── Barras avance vs meta ────────────────────────────────────────────────────
+function renderAvanceBars(months) {
+  const container = document.getElementById('avanceBars');
+  if (!months.length) { container.innerHTML = '<p class="no-data">Sin datos</p>'; return; }
+
+  const maxGoal = Math.max(...months.map(k => {
+    const i = parseInt(k.slice(4))-1;
+    return Math.max(MONTHLY_GOALS[i]||0, (allData[k]||{}).proyeccion||0);
+  }));
+
+  container.innerHTML = months.map(k => {
+    const i      = parseInt(k.slice(4))-1;
+    const d      = allData[k] || {};
+    const real   = d.real || 0;
+    const goal   = MONTHLY_GOALS[i] || 0;
+    const alta_e = d.alta_est || 0;
+    const med_e  = d.media_est || 0;
+    const omisoEst = alta_e + med_e;
+    const realPct  = maxGoal ? Math.min((real/maxGoal)*100,100) : 0;
+    const omiPct   = maxGoal ? Math.min((omisoEst/maxGoal)*100,100) : 0;
+    const goalPct  = maxGoal ? Math.min((goal/maxGoal)*100,100) : 0;
+    const pctVal   = goal ? ((real/goal)*100).toFixed(0)+'%' : '—';
+    return `
+    <div class="bar-row">
+      <div class="bar-mes-label">${MESES[i].substring(0,3)}</div>
+      <div class="bar-track">
+        <div class="bar-real"  style="width:${realPct}%"></div>
+        <div class="bar-omiso" style="left:${realPct}%;width:${Math.min(omiPct,100-realPct)}%"></div>
+        <div class="bar-meta-line" style="left:${goalPct}%"></div>
+      </div>
+      <div class="bar-pct-label">${pctVal}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Tabla ────────────────────────────────────────────────────────────────────
+function sortBy(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = col !== 'ref_avg'; }
+  renderTable();
+}
+
+function renderTable() {
+  const q   = document.getElementById('searchInput').value.toLowerCase().trim();
+  const seg = document.getElementById('filtroSegmento').value;
+
+  let rows = currentOmisos.filter(o => {
+    const matchQ   = !q || o.rfc.toLowerCase().includes(q) || o.nombre.toLowerCase().includes(q);
+    const matchSeg = !seg || o.segment === seg;
+    return matchQ && matchSeg;
+  });
+
+  // Ordenar
+  rows.sort((a,b) => {
+    let av = a[sortCol], bv = b[sortCol];
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av < bv) return sortAsc ? -1 : 1;
+    if (av > bv) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  const total = rows.length;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  const slice = rows.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+
+  const tbody = document.getElementById('omisosBody');
+  const nod   = document.getElementById('noData');
+
+  if (!slice.length) {
+    tbody.innerHTML = '';
+    nod.style.display = 'block';
+  } else {
+    nod.style.display = 'none';
+    tbody.innerHTML = slice.map(o => `
+      <tr>
+        <td><code>${o.rfc}</code></td>
+        <td>${o.nombre}</td>
+        <td><span class="badge ${o.segment}">${o.segment}</span></td>
+        <td style="text-align:right">${fmt(o.ref_avg)}</td>
+        <td style="text-align:right">${o.ref_months}</td>
+      </tr>`).join('');
+  }
+
+  // Paginación
+  const pag = document.getElementById('pagination');
+  if (totalPages <= 1) { pag.innerHTML = `<span>${total} registro(s)</span>`; return; }
+  let html = `<span>${total} registros</span> `;
+  if (currentPage > 1) html += `<button class="page-btn" onclick="goPage(${currentPage-1})">‹</button>`;
+  const start = Math.max(1, currentPage-2), end = Math.min(totalPages, currentPage+2);
+  for (let p = start; p <= end; p++)
+    html += `<button class="page-btn${p===currentPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  if (currentPage < totalPages) html += `<button class="page-btn" onclick="goPage(${currentPage+1})">›</button>`;
+  pag.innerHTML = html;
+}
+
+function goPage(p) { currentPage = p; renderTable(); }
+
+// ── ACTUALIZAR desde Drive (client-side) ─────────────────────────────────────
+function norm(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+
+function segment(avg){
+  const a = Math.abs(avg);
+  if (a >= ALTA_MIN) return 'Alta';
+  if (a >= MEDIA_MIN) return 'Media';
+  return 'Seguimiento';
+}
+
+async function fetchFromDrive(){
+  if (API_KEY === 'YOUR_GOOGLE_DRIVE_API_KEY'){
+    alert('Configura API_KEY en el HTML para usar esta función.');
+    return;
+  }
+  spinner('Listando archivos en Drive…');
+  try {
+    const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+trashed%3Dfalse&fields=files(id,name)&pageSize=200&key=${API_KEY}`;
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('Error Drive API: ' + resp.status);
+    const {files} = await resp.json();
+
+    const raw = {};
+    for (const f of files){
+      const nameN = norm(f.name);
+      let monthIdx = MESES_ES_NORM.findIndex(m => nameN.includes(m));
+      if (monthIdx < 0) continue;
+      const mesKey = `${YEAR}${String(monthIdx+1).padStart(2,'0')}`;
+      spinner(`Descargando ${f.name}…`);
+      const dlUrl = `https://www.googleapis.com/drive/v3/files/${f.id}?alt=media&key=${API_KEY}`;
+      const buf = await (await fetch(dlUrl)).arrayBuffer();
+      const wb  = XLSX.read(buf, {type:'array'});
+      const ws  = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      // detectar fila de inicio (RFC válido en col 0)
+      let start = 0;
+      for (let r=0; r<Math.min(20,rows.length); r++){
+        if (/^[A-ZÑ]{3,4}\d{6}/i.test(String(rows[r][0]||'').trim())){ start=r; break; }
+      }
+      if (!raw[mesKey]) raw[mesKey] = [];
+      for (let r=start; r<rows.length; r++){
+        const row = rows[r];
+        const rfc    = String(row[0]||'').trim().toUpperCase();
+        const nombre = String(row[1]||'').trim();
+        const colN   = parseFloat(row[13])||0;
+        const colI   = parseFloat(row[8])||0;
+        const amount = colN - colI;
+        if (/^[A-ZÑ]{3,4}\d{6}/.test(rfc) && amount !== 0)
+          raw[mesKey].push({rfc, nombre, amount});
+      }
+    }
+
+    spinner('Calculando proyecciones…');
+    const computed = computeMonthData(raw);
+
+    // Merge con protección
+    for (const [mes, data] of Object.entries(computed)){
+      if (!allData[mes] || data.real > (allData[mes].real||0))
+        allData[mes] = data;
+    }
+
+    // Actualizar selector
+    const sel = document.getElementById('mesSelector');
+    const existing = new Set([...sel.options].map(o=>o.value));
+    Object.keys(allData).sort().forEach(k=>{
+      if (!existing.has(k)){
+        const idx = parseInt(k.slice(4))-1;
+        const opt = document.createElement('option');
+        opt.value=k; opt.textContent=`${MESES[idx]} ${YEAR}`;
+        sel.appendChild(opt);
+      }
+    });
+    sel.value = Object.keys(allData).sort().pop();
+
+    document.getElementById('lastUpdatedBadge').textContent =
+      'Actualizado: ' + new Date().toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'});
+    renderAll();
+  } catch(e){
+    alert('Error al actualizar: ' + e.message);
+  } finally {
+    hideSpinner();
+  }
+}
+
+function computeMonthData(raw){
+  const allMonths = Object.keys(raw).sort();
+  const result = {};
+  for (let i=0; i<allMonths.length; i++){
+    const mes = allMonths[i];
+    const currentRfcs = new Set(raw[mes].map(r=>r.rfc));
+    const refMonths   = allMonths.slice(0,i);
+    const refCount={}, refTotal={}, refName={};
+    for (const rm of refMonths){
+      for (const row of raw[rm]){
+        refCount[row.rfc]  = (refCount[row.rfc]||0)+1;
+        refTotal[row.rfc]  = (refTotal[row.rfc]||0)+row.amount;
+        refName[row.rfc]   = row.nombre;
+      }
+    }
+    const omisos = [];
+    for (const [rfc,cnt] of Object.entries(refCount)){
+      if (cnt>=2 && !currentRfcs.has(rfc)){
+        const avg = refTotal[rfc]/cnt;
+        omisos.push({rfc, nombre:refName[rfc], ref_avg:Math.round(avg*100)/100, ref_months:cnt, segment:segment(avg)});
+      }
+    }
+    const alta        = omisos.filter(o=>o.segment==='Alta');
+    const media       = omisos.filter(o=>o.segment==='Media');
+    const seguimiento = omisos.filter(o=>o.segment==='Seguimiento');
+    const alta_est    = alta.reduce((s,o)=>s+Math.abs(o.ref_avg),0);
+    const media_est   = media.reduce((s,o)=>s+Math.abs(o.ref_avg),0);
+    const real        = raw[mes].reduce((s,r)=>s+r.amount,0);
+    result[mes] = {
+      real:              Math.round(real*100)/100,
+      omisos,
+      alta_count:        alta.length,
+      media_count:       media.length,
+      seguimiento_count: seguimiento.length,
+      total_omisos:      omisos.length,
+      alta_est:          Math.round(alta_est*100)/100,
+      media_est:         Math.round(media_est*100)/100,
+      proyeccion:        Math.round((real+alta_est+media_est)*100)/100,
+      contributors:      raw[mes],
+    };
+  }
+  return result;
+}
+
+// ── Spinner ──────────────────────────────────────────────────────────────────
+function spinner(msg){ document.getElementById('spinnerMsg').textContent=msg||''; document.getElementById('spinner').classList.add('show'); }
+function hideSpinner(){ document.getElementById('spinner').classList.remove('show'); }
+
+// ── Exportación ──────────────────────────────────────────────────────────────
+function exportXLSX(){
+  const mes  = document.getElementById('mesSelector').value;
+  const idx  = parseInt(mes.slice(4))-1;
+  const data = allData[mes] || {};
+  const omisos = data.omisos || [];
+
+  const rows = omisos.map(o=>({
+    RFC:         o.rfc,
+    Nombre:      o.nombre,
+    Segmento:    o.segment,
+    'Prom. Ref.':o.ref_avg,
+    'Meses Ref.':o.ref_months,
+  }));
+  const ws  = XLSX.utils.json_to_sheet(rows);
+  const wb  = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Omisos');
+  XLSX.writeFile(wb, `omisos_alcohol_${MESES[idx]}_${YEAR}.xlsx`);
+}
+
+function exportPNG(){
+  alert('Para exportar como PNG usa la captura de pantalla de tu sistema operativo (Win+Shift+S en Windows o Cmd+Shift+4 en Mac).');
+}
+</script>
+</body>
+</html>
