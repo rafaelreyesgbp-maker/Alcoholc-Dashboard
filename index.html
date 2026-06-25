@@ -1,687 +1,497 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard IVFBCA 2026 | AAFY</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --navy:    #1a2744;
-      --teal:    #1d6a72;
-      --teal-lt: #e8f5f6;
-      --amber:   #b45309;
-      --amber-lt:#fef3c7;
-      --green:   #166534;
-      --green-lt:#dcfce7;
-      --red:     #991b1b;
-      --red-lt:  #fee2e2;
-      --gray:    #6b7280;
-      --border:  #e5e7eb;
-      --bg:      #f3f4f6;
-      --white:   #ffffff;
-      --text:    #111827;
-    }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
-
-    /* ── HEADER ── */
-    header {
-      background: var(--navy);
-      color: #fff;
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-    .header-left h1 { font-size: 15px; font-weight: 700; line-height: 1.3; }
-    .header-left p  { font-size: 12px; opacity: .75; margin-top: 2px; }
-    .header-right   { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-    select#mesSelector {
-      background: rgba(255,255,255,.15); color: #fff; border: 1px solid rgba(255,255,255,.3);
-      border-radius: 6px; padding: 6px 10px; font-size: 13px; cursor: pointer;
-    }
-    select#mesSelector option { background: var(--navy); }
-    .btn-actualizar {
-      background: #2d6a4f; color: #fff; border: none; border-radius: 6px;
-      padding: 7px 14px; font-size: 13px; cursor: pointer; font-weight: 600;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .btn-actualizar:hover { background: #1b4332; }
-    #lastUpdatedBadge { font-size: 11px; opacity: .65; }
-
-    /* ── LAYOUT ── */
-    main { padding: 20px 24px; max-width: 1400px; margin: 0 auto; }
-
-    /* ── KPI CARDS ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .kpi-card {
-      background: var(--white); border-radius: 10px; padding: 18px 20px;
-      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
-    }
-    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray); font-weight: 600; }
-    .kpi-value { font-size: 26px; font-weight: 700; margin-top: 6px; line-height: 1; }
-    .kpi-sub   { font-size: 11px; color: var(--gray); margin-top: 4px; }
-    .kpi-card.real      .kpi-value { color: var(--teal); }
-    .kpi-card.meta      .kpi-value { color: var(--navy); }
-    .kpi-card.proyeccion .kpi-value { color: #7c3aed; }
-    .kpi-card.omisos    .kpi-value { color: var(--amber); }
-
-    /* ── YTD CARD ── */
-    .ytd-card {
-      background: var(--white); border-radius: 10px; padding: 18px 24px;
-      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
-      margin-bottom: 20px;
-    }
-    .ytd-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
-    .ytd-title  { font-size: 13px; font-weight: 700; color: var(--navy); }
-    .ytd-pct    { font-size: 22px; font-weight: 700; color: var(--teal); }
-    .ytd-bar-track { background: var(--border); border-radius: 99px; height: 12px; overflow: hidden; }
-    .ytd-bar-fill  { background: var(--teal); height: 100%; border-radius: 99px; transition: width .5s; }
-    .ytd-meta { display: flex; gap: 24px; margin-top: 10px; font-size: 12px; color: var(--gray); }
-    .ytd-meta span b { color: var(--text); }
-
-    /* ── AVANCE VS META ── */
-    .section-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 12px; }
-    .avance-card {
-      background: var(--white); border-radius: 10px; padding: 18px 24px;
-      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
-      margin-bottom: 20px;
-    }
-    .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .bar-mes-label { width: 90px; font-size: 12px; color: var(--gray); text-align: right; flex-shrink: 0; }
-    .bar-track { flex: 1; background: var(--border); border-radius: 99px; height: 18px; overflow: hidden; position: relative; }
-    .bar-real  { height: 100%; background: var(--teal); border-radius: 99px; position: absolute; left: 0; top: 0; }
-    .bar-omiso { height: 100%; background: #d97706; border-radius: 99px; position: absolute; top: 0; }
-    .bar-meta-line {
-      position: absolute; top: 0; height: 100%; width: 2px;
-      background: var(--navy); opacity: .5;
-    }
-    .bar-pct-label { width: 48px; font-size: 11px; color: var(--gray); }
-
-    /* ── SEGMENTOS GRID ── */
-    .seg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 20px; }
-    .seg-card {
-      border-radius: 10px; padding: 16px 18px;
-      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
-    }
-    .seg-card.alta        { background: var(--red-lt);    border-color: #fca5a5; }
-    .seg-card.media       { background: var(--amber-lt);  border-color: #fcd34d; }
-    .seg-card.seguimiento { background: #eff6ff;           border-color: #bfdbfe; }
-    .seg-card.total       { background: #faf5ff;           border-color: #d8b4fe; }
-    .seg-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-    .seg-card.alta        .seg-label { color: var(--red); }
-    .seg-card.media       .seg-label { color: var(--amber); }
-    .seg-card.seguimiento .seg-label { color: #1d4ed8; }
-    .seg-card.total       .seg-label { color: #6d28d9; }
-    .seg-count { font-size: 30px; font-weight: 700; margin: 6px 0 2px; }
-    .seg-card.alta        .seg-count { color: var(--red); }
-    .seg-card.media       .seg-count { color: var(--amber); }
-    .seg-card.seguimiento .seg-count { color: #1d4ed8; }
-    .seg-card.total       .seg-count { color: #6d28d9; }
-    .seg-est { font-size: 11px; color: var(--gray); }
-
-    /* ── TABLA DE OMISOS ── */
-    .tabla-card {
-      background: var(--white); border-radius: 10px; padding: 18px 24px;
-      border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.06);
-      margin-bottom: 20px;
-    }
-    .tabla-controls { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
-    .tabla-controls input, .tabla-controls select {
-      border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px;
-      font-size: 13px; background: var(--bg); color: var(--text);
-    }
-    .tabla-controls input { flex: 1; min-width: 200px; }
-    .export-btns { margin-left: auto; display: flex; gap: 8px; }
-    .btn-exp {
-      border: 1px solid var(--border); background: var(--white); border-radius: 6px;
-      padding: 6px 12px; font-size: 12px; cursor: pointer; font-weight: 600; color: var(--navy);
-    }
-    .btn-exp:hover { background: var(--bg); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { background: var(--bg); color: var(--gray); font-weight: 600; font-size: 11px;
-         text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; text-align: left;
-         cursor: pointer; border-bottom: 1px solid var(--border); user-select: none; }
-    th:hover { color: var(--navy); }
-    td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: var(--bg); }
-    .badge {
-      display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;
-    }
-    .badge.Alta        { background: var(--red-lt);   color: var(--red); }
-    .badge.Media       { background: var(--amber-lt); color: var(--amber); }
-    .badge.Seguimiento { background: #eff6ff;          color: #1d4ed8; }
-    .pagination { display: flex; gap: 6px; justify-content: center; margin-top: 14px; align-items: center; font-size: 12px; }
-    .page-btn {
-      border: 1px solid var(--border); background: var(--white); border-radius: 5px;
-      padding: 4px 9px; cursor: pointer; font-size: 12px;
-    }
-    .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
-    .page-btn:hover:not(.active) { background: var(--bg); }
-    .no-data { text-align: center; padding: 30px; color: var(--gray); }
-
-    /* ── SPINNER ── */
-    .spinner {
-      display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35);
-      z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
-    }
-    .spinner.show { display: flex; }
-    .spinner-ring {
-      width: 48px; height: 48px; border: 5px solid rgba(255,255,255,.3);
-      border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite;
-    }
-    .spinner-msg { color: #fff; font-size: 14px; font-weight: 600; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media print {
-      header, .tabla-controls, .export-btns, .pagination { display: none !important; }
-      main { padding: 0; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<title>Bebidas Alcohólicas · Proyección Cierre – AAFY 2026</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+body { background: #F0EDE8; min-height: 100vh; }
+:root { --burgundy: #8B1A2E; --gold: #C9A84C; --teal: #1D9E75; --navy: #0D1B3E; --cream: #F5F2EE; }
+.header { background: var(--burgundy); color: #fff; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.header h1 { font-size: 17px; font-weight: 800; letter-spacing: 0.3px; }
+.header .sub { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+.header-right { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+select.month-sel { background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.4); color: #fff; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; appearance: none; -webkit-appearance: none; }
+select.month-sel option { background: var(--burgundy); }
+.btn-refresh { background: var(--gold); color: var(--navy); border: none; padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s; }
+.btn-refresh:hover { opacity: 0.85; }
+.btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-hdr-exp { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,0.45); padding: 6px 11px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+.btn-hdr-exp:hover { background: rgba(255,255,255,0.15); }
+.gold-bar { background: var(--gold); height: 4px; }
+.content { padding: 20px 24px; max-width: 1200px; margin: 0 auto; }
+.status-bar { background: #fff; border-radius: 8px; padding: 8px 16px; margin-bottom: 16px; font-size: 11px; color: #666; display: flex; align-items: center; gap: 8px; border-left: 3px solid var(--teal); }
+.status-bar.updating { border-left-color: var(--gold); }
+.status-bar.error { border-left-color: #E57373; }
+.kpi-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-card { background: #fff; border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); border-top: 4px solid var(--teal); }
+.kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: #888; }
+.kpi-sub { font-size: 10px; color: #aaa; margin-top: 1px; margin-bottom: 6px; }
+.kpi-val { font-size: 24px; font-weight: 800; line-height: 1.1; letter-spacing: -0.5px; }
+.kpi-note { font-size: 11px; color: #666; margin-top: 4px; }
+.section { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.sec-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--navy); opacity: 0.7; margin-bottom: 14px; }
+.progress-wrap { background: #F1F5F9; border-radius: 99px; height: 14px; overflow: hidden; margin: 6px 0 4px; }
+.progress-fill { height: 100%; border-radius: 99px; transition: width 0.5s; }
+.seg-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.seg-card { border-radius: 10px; padding: 14px 16px; border: 1.5px solid #ddd; }
+.seg-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.seg-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.seg-count { font-size: 11px; color: #666; }
+.seg-monto { font-size: 16px; font-weight: 800; margin-top: 6px; }
+.table-header { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.search-input { flex: 1; min-width: 180px; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; outline: none; }
+.search-input:focus { border-color: var(--teal); }
+.seg-filter { padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 12px; cursor: pointer; background: #fff; }
+.btn-export-tbl { background: #1D9E75; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.btn-export-tbl:hover { opacity: 0.85; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead th { background: var(--navy); color: #fff; padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; position: sticky; top: 0; cursor: pointer; user-select: none; }
+thead th:hover { background: #162B58; }
+thead th:last-child { text-align: right; }
+.sort-ind { margin-left: 4px; opacity: 0.4; font-size: 9px; }
+.sort-ind.on { opacity: 1; }
+tbody tr:nth-child(even) { background: #F8FAFB; }
+tbody tr:hover { background: #E8F7F2; }
+td { padding: 8px 12px; border-bottom: 1px solid #eee; }
+td:last-child { text-align: right; font-weight: 700; }
+.rfc-code { font-family: monospace; font-size: 11px; color: var(--navy); }
+.seg-pill { display: inline-block; padding: 1px 7px; border-radius: 99px; font-size: 10px; font-weight: 700; }
+tfoot tr { background: var(--cream) !important; }
+tfoot td { font-weight: 700; font-size: 13px; border-top: 2px solid #ddd; }
+.pagination { display: flex; gap: 4px; padding: 10px 0; align-items: center; justify-content: center; flex-wrap: wrap; }
+.page-btn { padding: 4px 9px; border-radius: 5px; font-size: 12px; cursor: pointer; border: 1px solid #ddd; background: #fff; color: #333; }
+.page-btn:disabled { background: #f5f5f5; color: #ccc; cursor: default; }
+.page-btn.active { background: var(--burgundy); color: #fff; border-color: var(--burgundy); font-weight: 700; }
+.footer { background: var(--navy); color: #fff; padding: 10px 24px; font-size: 11px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; opacity: 0.9; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid rgba(0,0,0,0.1); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media print { .header-right, .gold-bar, #omisos-section, .export-btn-row { display:none !important; } body { background:#fff !important; } .section { break-inside:avoid; box-shadow:none !important; } }
+.export-btn-row { display:flex; flex-direction:column; gap:6px; margin-top:8px; margin-bottom:16px; }
+.btn-export { background:#fff; color:#8B1A2E; border:1.5px solid #8B1A2E; border-radius:8px; padding:7px 14px; font-size:12px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.btn-export:hover { background:#F5F2EE; }
+@media (max-width: 640px) {
+  .header { padding: 12px 16px; }
+  .content { padding: 12px 14px; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .kpi-val { font-size: 20px; }
+  .seg-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  table { font-size: 11px; min-width: 560px; }
+}
+</style>
 </head>
 <body>
 
-<!-- ════════════ DATOS EMBEBIDOS (reemplazados por update_alcohol.py) ════════ -->
-<script>
-let allData = {"202601":{"real":7572141.0,"omisos":[],"alta_count":0,"media_count":0,"seguimiento_count":0,"total_omisos":0,"alta_est":0,"media_est":0,"proyeccion":7572141.0,"contributors":[{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202505","amount":2549.0},{"rfc":"DLI931201MI9","nombre":"DISTRIBUIDORA LIVERPOOL SA DE CV","period":"202511","amount":34187.0},{"rfc":"EUMF691117U18","nombre":"FELICIA DEL CARMEN ESQUIVEL MIS","period":"202512","amount":778.0},{"rfc":"PEMO610712FY2","nombre":"ORLANDO DE LA CRUZ PERAZA MARTIN","period":"202512","amount":95.0},{"rfc":"GUSR401216LC3","nombre":"RAUL GUILLERMO GUEVARA SOSA","period":"202512","amount":125.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202508","amount":13026.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202507","amount":10475.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202506","amount":12220.0},{"rfc":"SEM980701STA","nombre":"7-ELEVEN MEXICO SA DE CV","period":"202512","amount":47516.0},{"rfc":"CNC820428674","nombre":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","period":"202512","amount":646727.0},{"rfc":"CCO8605231N4","nombre":"CADENA COMERCIAL OXXO, SA DE CV","period":"202512","amount":391121.0},{"rfc":"NWM9709244W4","nombre":"NUEVA WAL MART DE MEXICO S DE RL DE CV","period":"202512","amount":2114724.0},{"rfc":"GOCA840623JA0","nombre":"ADRIANA DEL CARMEN GOMEZ CASTRO","period":"202512","amount":1436.0},{"rfc":"EIKE740529TY0","nombre":"EDWIN ESPINOSA KU","period":"202512","amount":160.0},{"rfc":"TCH850701RM1","nombre":"TIENDAS CHEDRAUI SA DE CV","period":"202512","amount":1141607.0},{"rfc":"DLI931201MI9","nombre":"DISTRIBUIDORA LIVERPOOL SA DE CV","period":"202512","amount":88230.0},{"rfc":"TPF1011225L1","nombre":"TE LA PONEMOS FACIL SA DE CV","period":"202512","amount":7632.0},{"rfc":"PPA831231GI0","nombre":"PROVEEDORA DEL PANADERO SA DE CV","period":"202512","amount":97813.0},{"rfc":"OPR240403K11","nombre":"ORUN PROMOTION SA DE CV","period":"202512","amount":233039.0},{"rfc":"ADU800131T10","nombre":"ABARROTERA DEL DUERO SA DE CV","period":"202512","amount":315320.0},{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","period":"202512","amount":262.0},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","period":"202512","amount":3407.0},{"rfc":"CACW740424LM0","nombre":"WILBERT ANTONIO CARRIL CABAÑAS","period":"202512","amount":3051.0},{"rfc":"COCM930303AM6","nombre":"MELCHOR ALFREDO COUOH CONTRERAS","period":"202512","amount":650.0},{"rfc":"EBE7711037Y5","nombre":"EMBOTELLADORAS BEPENSA SA DE CV","period":"202512","amount":666.0},{"rfc":"TSO991022PB6","nombre":"TIENDAS SORIANA SA DE CV","period":"202512","amount":495937.0},{"rfc":"CME910715UB9","nombre":"COSTCO DE MEXICO SA DE CV","period":"202512","amount":774425.0},{"rfc":"EME910610G1A","nombre":"LA EUROPEA MEXICO SAPI DE C V","period":"202512","amount":303902.0},{"rfc":"SSF830912738","nombre":"SUPER SAN FRANCISCO DE ASIS SA DE CV","period":"202512","amount":399000.0},{"rfc":"GMY2110131E7","nombre":"GO MART YUC S DE RL DE CV","period":"202512","amount":254840.0},{"rfc":"CACM710426320","nombre":"MARIA MARISOL CHAN COBA","period":"202512","amount":570.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202510","amount":10921.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202509","amount":27493.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202511","amount":16749.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202009","amount":605.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202010","amount":10455.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202011","amount":7777.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202002","amount":17231.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202003","amount":17391.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202006","amount":1163.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202012","amount":52505.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202004","amount":5036.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202007","amount":3425.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202512","amount":3020.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202503","amount":2880.0}]},"202602":{"real":3796448.0,"omisos":[{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","ref_avg":2950.0,"ref_months":2,"segment":"Seguimiento"}],"alta_count":0,"media_count":0,"seguimiento_count":1,"total_omisos":1,"alta_est":0,"media_est":0,"proyeccion":3796448.0,"contributors":[{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202101","amount":1025.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202201","amount":2514.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202103","amount":7165.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202105","amount":159.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202106","amount":3631.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202108","amount":4845.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202109","amount":9183.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202110","amount":58833.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202111","amount":43608.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202112","amount":2869.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202202","amount":7604.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202203","amount":9760.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202204","amount":15566.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202205","amount":9041.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202206","amount":10505.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202207","amount":12213.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202208","amount":25837.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202209","amount":5571.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202210","amount":61063.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202211","amount":11994.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202212","amount":9572.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202301","amount":34674.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202302","amount":14847.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202303","amount":13334.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202304","amount":12648.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202505","amount":18193.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202306","amount":1282.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202307","amount":14904.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202308","amount":35793.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202309","amount":3201.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202310","amount":71246.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202311","amount":53405.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202312","amount":4424.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202512","amount":20773.0},{"rfc":"GUSR401216LC3","nombre":"RAUL GUILLERMO GUEVARA SOSA","period":"202601","amount":154.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202401","amount":17095.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202402","amount":16509.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202403","amount":8744.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202404","amount":6330.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202405","amount":23771.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202406","amount":10262.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202407","amount":8513.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202408","amount":9869.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202409","amount":68497.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202410","amount":14649.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202411","amount":87325.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202412","amount":6888.0},{"rfc":"CNC820428674","nombre":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","period":"202601","amount":348571.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202501","amount":10844.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202502","amount":6913.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202503","amount":1546.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202504","amount":9534.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202506","amount":6167.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202507","amount":14373.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202508","amount":15746.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202509","amount":6508.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202510","amount":57111.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202511","amount":2731.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202512","amount":15608.0},{"rfc":"SEM980701STA","nombre":"7-ELEVEN MEXICO SA DE CV","period":"202601","amount":40520.0},{"rfc":"EUMF691117U18","nombre":"FELICIA DEL CARMEN ESQUIVEL MIS","period":"202601","amount":1522.0},{"rfc":"PEMO610712FY2","nombre":"ORLANDO DE LA CRUZ PERAZA MARTIN","period":"202601","amount":57.0},{"rfc":"NWM9709244W4","nombre":"NUEVA WAL MART DE MEXICO S DE RL DE CV","period":"202601","amount":624299.0},{"rfc":"TPF1011225L1","nombre":"TE LA PONEMOS FACIL SA DE CV","period":"202601","amount":2158.0},{"rfc":"GOCA840623JA0","nombre":"ADRIANA DEL CARMEN GOMEZ CASTRO","period":"202601","amount":1276.0},{"rfc":"TCH850701RM1","nombre":"TIENDAS CHEDRAUI SA DE CV","period":"202601","amount":392504.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202601","amount":50.0},{"rfc":"CME910715UB9","nombre":"COSTCO DE MEXICO SA DE CV","period":"202601","amount":295324.0},{"rfc":"CACM710426320","nombre":"MARIA MARISOL CHAN COBA","period":"202601","amount":346.0},{"rfc":"EIKE740529TY0","nombre":"EDWIN ESPINOSA KU","period":"202601","amount":123.0},{"rfc":"DLI931201MI9","nombre":"DISTRIBUIDORA LIVERPOOL SA DE CV","period":"202601","amount":21190.0},{"rfc":"TSO991022PB6","nombre":"TIENDAS SORIANA SA DE CV","period":"202601","amount":151375.0},{"rfc":"OPR240403K11","nombre":"ORUN PROMOTION SA DE CV","period":"202601","amount":140179.0},{"rfc":"PPA831231GI0","nombre":"PROVEEDORA DEL PANADERO SA DE CV","period":"202601","amount":14723.0},{"rfc":"PERA900428DP3","nombre":"ANA KAREN PENICHE ROSADO","period":"202601","amount":4900.0},{"rfc":"EBE7711037Y5","nombre":"EMBOTELLADORAS BEPENSA SA DE CV","period":"202601","amount":127.0},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","period":"202601","amount":2066.0},{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","period":"202601","amount":34.0},{"rfc":"CACW740424LM0","nombre":"WILBERT ANTONIO CARRIL CABAÑAS","period":"202601","amount":1913.0},{"rfc":"GMY2110131E7","nombre":"GO MART YUC S DE RL DE CV","period":"202601","amount":110829.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202601","amount":9470.0},{"rfc":"ADU800131T10","nombre":"ABARROTERA DEL DUERO SA DE CV","period":"202601","amount":145403.0},{"rfc":"CCO8605231N4","nombre":"CADENA COMERCIAL OXXO, SA DE CV","period":"202601","amount":236748.0},{"rfc":"SSF830912738","nombre":"SUPER SAN FRANCISCO DE ASIS SA DE CV","period":"202601","amount":123512.0},{"rfc":"EME910610G1A","nombre":"LA EUROPEA MEXICO SAPI DE C V","period":"202601","amount":90260.0}]},"202603":{"real":2837171.0,"omisos":[{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","ref_avg":148.0,"ref_months":2,"segment":"Seguimiento"},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","ref_avg":2736.5,"ref_months":2,"segment":"Seguimiento"},{"rfc":"CACW740424LM0","nombre":"WILBERT ANTONIO CARRIL CABAÑAS","ref_avg":2482.0,"ref_months":2,"segment":"Seguimiento"},{"rfc":"EME910610G1A","nombre":"LA EUROPEA MEXICO SAPI DE C V","ref_avg":197081.0,"ref_months":2,"segment":"Alta"}],"alta_count":1,"media_count":0,"seguimiento_count":3,"total_omisos":4,"alta_est":197081.0,"media_est":0,"proyeccion":3034252.0,"contributors":[{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202601","amount":2937.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202504","amount":2682.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202107","amount":1101.0},{"rfc":"GOCA840623JA0","nombre":"ADRIANA DEL CARMEN GOMEZ CASTRO","period":"202602","amount":1548.0},{"rfc":"EUMF691117U18","nombre":"FELICIA DEL CARMEN ESQUIVEL MIS","period":"202602","amount":1094.0},{"rfc":"PEMO610712FY2","nombre":"ORLANDO DE LA CRUZ PERAZA MARTIN","period":"202602","amount":55.0},{"rfc":"SEM980701STA","nombre":"7-ELEVEN MEXICO SA DE CV","period":"202602","amount":42138.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202505","amount":10261.0},{"rfc":"CNC820428674","nombre":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","period":"202602","amount":295458.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202601","amount":20509.0},{"rfc":"GUSR401216LC3","nombre":"RAUL GUILLERMO GUEVARA SOSA","period":"202602","amount":116.0},{"rfc":"CME910715UB9","nombre":"COSTCO DE MEXICO SA DE CV","period":"202602","amount":300086.0},{"rfc":"COCM930303AM6","nombre":"MELCHOR ALFREDO COUOH CONTRERAS","period":"202602","amount":320.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202506","amount":2718.0},{"rfc":"CCO8605231N4","nombre":"CADENA COMERCIAL OXXO, SA DE CV","period":"202602","amount":223205.0},{"rfc":"CACM710426320","nombre":"MARIA MARISOL CHAN COBA","period":"202602","amount":432.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202507","amount":43.0},{"rfc":"NWM9709244W4","nombre":"NUEVA WAL MART DE MEXICO S DE RL DE CV","period":"202602","amount":625822.0},{"rfc":"EIKE740529TY0","nombre":"EDWIN ESPINOSA KU","period":"202602","amount":252.0},{"rfc":"TCH850701RM1","nombre":"TIENDAS CHEDRAUI SA DE CV","period":"202602","amount":582349.0},{"rfc":"DLI931201MI9","nombre":"DISTRIBUIDORA LIVERPOOL SA DE CV","period":"202602","amount":13275.0},{"rfc":"TPF1011225L1","nombre":"TE LA PONEMOS FACIL SA DE CV","period":"202602","amount":1582.0},{"rfc":"PPA831231GI0","nombre":"PROVEEDORA DEL PANADERO SA DE CV","period":"202602","amount":14778.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202602","amount":18656.0},{"rfc":"PERA900428DP3","nombre":"ANA KAREN PENICHE ROSADO","period":"202602","amount":708.0},{"rfc":"OPR240403K11","nombre":"ORUN PROMOTION SA DE CV","period":"202602","amount":117654.0},{"rfc":"EBE7711037Y5","nombre":"EMBOTELLADORAS BEPENSA SA DE CV","period":"202602","amount":249.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202602","amount":25.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202602","amount":9400.0},{"rfc":"GMY2110131E7","nombre":"GO MART YUC S DE RL DE CV","period":"202602","amount":110641.0},{"rfc":"SSF830912738","nombre":"SUPER SAN FRANCISCO DE ASIS SA DE CV","period":"202602","amount":146657.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202511","amount":26.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202512","amount":40.0},{"rfc":"ADU800131T10","nombre":"ABARROTERA DEL DUERO SA DE CV","period":"202602","amount":138773.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202510","amount":42.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202508","amount":43.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202509","amount":42.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202501","amount":11.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202502","amount":19.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202503","amount":25.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202504","amount":15.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202505","amount":14.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202506","amount":17.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202507","amount":19.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202508","amount":10.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202509","amount":12.0},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","period":"202510","amount":8.0},{"rfc":"TSO991022PB6","nombre":"TIENDAS SORIANA SA DE CV","period":"202602","amount":151237.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202501","amount":18.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202502","amount":9.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202503","amount":4.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202504","amount":11.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202505","amount":1.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202506","amount":1.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202507","amount":1.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202509","amount":9.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202510","amount":2.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202511","amount":1.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202512","amount":7.0},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","period":"202508","amount":3.0}]},"202604":{"real":3467987.0,"omisos":[{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","ref_avg":15337.1,"ref_months":10,"segment":"Media"},{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","ref_avg":148.0,"ref_months":2,"segment":"Seguimiento"},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","ref_avg":2736.5,"ref_months":2,"segment":"Seguimiento"},{"rfc":"CACW740424LM0","nombre":"WILBERT ANTONIO CARRIL CABAÑAS","ref_avg":2482.0,"ref_months":2,"segment":"Seguimiento"},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","ref_avg":15.0,"ref_months":10,"segment":"Seguimiento"},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","ref_avg":5.58,"ref_months":12,"segment":"Seguimiento"}],"alta_count":0,"media_count":1,"seguimiento_count":5,"total_omisos":6,"alta_est":0,"media_est":15337.1,"proyeccion":3483324.1,"contributors":[{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202012","amount":14252.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202112","amount":26228.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202108","amount":7405.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202104","amount":7221.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202212","amount":22946.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202101","amount":11552.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202103","amount":6825.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202208","amount":10444.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202206","amount":6164.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202202","amount":5606.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202111","amount":10226.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202105","amount":10118.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202203","amount":5421.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202211","amount":9864.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202204","amount":5349.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202110","amount":8705.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202205","amount":5015.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202209","amount":8623.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202201","amount":4616.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202109","amount":8612.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202102","amount":8385.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202210","amount":8308.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202107","amount":8256.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202106","amount":7843.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202207","amount":7593.0},{"rfc":"PEMO610712FY2","nombre":"ORLANDO DE LA CRUZ PERAZA MARTIN","period":"202603","amount":47.0},{"rfc":"GUSR401216LC3","nombre":"RAUL GUILLERMO GUEVARA SOSA","period":"202603","amount":96.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202301","amount":3945.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202302","amount":4197.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202303","amount":5819.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202304","amount":4309.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202305","amount":6364.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202306","amount":6880.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202307","amount":5945.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202308","amount":4931.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202309","amount":6886.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202310","amount":6157.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202311","amount":9432.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202312","amount":31915.0},{"rfc":"EUMF691117U18","nombre":"FELICIA DEL CARMEN ESQUIVEL MIS","period":"202603","amount":692.0},{"rfc":"CNC820428674","nombre":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","period":"202603","amount":378938.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202401","amount":4272.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202402","amount":4450.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202403","amount":4727.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202404","amount":4864.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202405","amount":5858.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202406","amount":6395.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202407","amount":4252.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202408","amount":4905.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202409","amount":5363.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202410","amount":8154.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202411","amount":10998.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202412","amount":23232.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202501","amount":5595.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202503","amount":5252.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202504","amount":4834.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202505","amount":6572.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202506","amount":6106.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202508","amount":3738.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202509","amount":6446.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202510","amount":7442.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202511","amount":7501.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202512","amount":26106.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202601","amount":4678.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202602","amount":6249.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202507","amount":5562.0},{"rfc":"GOCA840623JA0","nombre":"ADRIANA DEL CARMEN GOMEZ CASTRO","period":"202603","amount":643.0},{"rfc":"EME910610G1A","nombre":"LA EUROPEA MEXICO SAPI DE C V","period":"202602","amount":89872.0},{"rfc":"CCO8605231N4","nombre":"CADENA COMERCIAL OXXO, SA DE CV","period":"202603","amount":296755.0},{"rfc":"CME910715UB9","nombre":"COSTCO DE MEXICO SA DE CV","period":"202603","amount":309589.0},{"rfc":"SEM980701STA","nombre":"7-ELEVEN MEXICO SA DE CV","period":"202603","amount":48456.0},{"rfc":"DLI931201MI9","nombre":"DISTRIBUIDORA LIVERPOOL SA DE CV","period":"202603","amount":19647.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202105","amount":732.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202106","amount":716.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202101","amount":280.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202103","amount":554.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202102","amount":454.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202109","amount":438.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202107","amount":701.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202104","amount":817.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202108","amount":371.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202110","amount":536.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202111","amount":845.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202112","amount":1614.0},{"rfc":"COCM930303AM6","nombre":"MELCHOR ALFREDO COUOH CONTRERAS","period":"202603","amount":172.0},{"rfc":"CACM710426320","nombre":"MARIA MARISOL CHAN COBA","period":"202603","amount":273.0},{"rfc":"NWM9709244W4","nombre":"NUEVA WAL MART DE MEXICO S DE RL DE CV","period":"202603","amount":680587.0},{"rfc":"CSI2104273D7","nombre":"LA CAVA SILVIOS SAS DE CV","period":"202603","amount":3306.0},{"rfc":"TCH850701RM1","nombre":"TIENDAS CHEDRAUI SA DE CV","period":"202603","amount":361201.0},{"rfc":"TPF1011225L1","nombre":"TE LA PONEMOS FACIL SA DE CV","period":"202603","amount":1607.0},{"rfc":"EIKE740529TY0","nombre":"EDWIN ESPINOSA KU","period":"202603","amount":154.0},{"rfc":"OPR240403K11","nombre":"ORUN PROMOTION SA DE CV","period":"202603","amount":115330.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202603","amount":3997.0},{"rfc":"PPA831231GI0","nombre":"PROVEEDORA DEL PANADERO SA DE CV","period":"202603","amount":15535.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202603","amount":8849.0},{"rfc":"GMY2110131E7","nombre":"GO MART YUC S DE RL DE CV","period":"202603","amount":119278.0},{"rfc":"ADU800131T10","nombre":"ABARROTERA DEL DUERO SA DE CV","period":"202603","amount":129625.0},{"rfc":"TSO991022PB6","nombre":"TIENDAS SORIANA SA DE CV","period":"202603","amount":125188.0},{"rfc":"REGA651008EY3","nombre":"ADDY ROSA REJON GONZALEZ","period":"202602","amount":2829.0},{"rfc":"EBE7711037Y5","nombre":"EMBOTELLADORAS BEPENSA SA DE CV","period":"202603","amount":557.0},{"rfc":"REGA651008EY3","nombre":"ADDY ROSA REJON GONZALEZ","period":"202603","amount":4616.0},{"rfc":"SSF830912738","nombre":"SUPER SAN FRANCISCO DE ASIS SA DE CV","period":"202603","amount":143091.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202603","amount":25.0},{"rfc":"EME910610G1A","nombre":"LA EUROPEA MEXICO SAPI DE C V","period":"202603","amount":68884.0},{"rfc":"PERA900428DP3","nombre":"ANA KAREN PENICHE ROSADO","period":"202603","amount":5724.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202505","amount":2498.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202602","amount":1977.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202603","amount":1780.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202506","amount":2203.0}]},"202605":{"real":3097372.0,"omisos":[{"rfc":"EIKE740529TY0","nombre":"EDWIN ESPINOSA KU","ref_avg":172.25,"ref_months":4,"segment":"Seguimiento"},{"rfc":"CACW740424LM0","nombre":"WILBERT ANTONIO CARRIL CABAÑAS","ref_avg":2482.0,"ref_months":2,"segment":"Seguimiento"},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","ref_avg":15.0,"ref_months":10,"segment":"Seguimiento"},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","ref_avg":5.58,"ref_months":12,"segment":"Seguimiento"}],"alta_count":0,"media_count":0,"seguimiento_count":4,"total_omisos":4,"alta_est":0,"media_est":0,"proyeccion":3097372.0,"contributors":[{"rfc":"CNC820428674","nombre":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","period":"202604","amount":442600.0},{"rfc":"EUMF691117U18","nombre":"FELICIA DEL CARMEN ESQUIVEL MIS","period":"202604","amount":967.0},{"rfc":"GUSR401216LC3","nombre":"RAUL GUILLERMO GUEVARA SOSA","period":"202604","amount":70.0},{"rfc":"GOCA840623JA0","nombre":"ADRIANA DEL CARMEN GOMEZ CASTRO","period":"202604","amount":723.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202211","amount":532.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202212","amount":1571.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202209","amount":575.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202210","amount":527.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202201","amount":490.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202203","amount":526.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202202","amount":480.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202204","amount":635.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202206","amount":602.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202205","amount":739.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202207","amount":499.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202208","amount":556.0},{"rfc":"DLI931201MI9","nombre":"DISTRIBUIDORA LIVERPOOL SA DE CV","period":"202604","amount":27973.0},{"rfc":"DMA210729D95","nombre":"DESTILADOS DEL MAYAB S DE RL DE CV","period":"202604","amount":3322.0},{"rfc":"CME910715UB9","nombre":"COSTCO DE MEXICO SA DE CV","period":"202604","amount":274735.0},{"rfc":"PEMO610712FY2","nombre":"ORLANDO DE LA CRUZ PERAZA MARTIN","period":"202604","amount":42.0},{"rfc":"SEM980701STA","nombre":"7-ELEVEN MEXICO SA DE CV","period":"202604","amount":50417.0},{"rfc":"CACM710426320","nombre":"MARIA MARISOL CHAN COBA","period":"202604","amount":278.0},{"rfc":"COCM930303AM6","nombre":"MELCHOR ALFREDO COUOH CONTRERAS","period":"202604","amount":565.0},{"rfc":"TSO991022PB6","nombre":"TIENDAS SORIANA SA DE CV","period":"202604","amount":132865.0},{"rfc":"CSI2104273D7","nombre":"LA CAVA SILVIOS SAS DE CV","period":"202604","amount":338.0},{"rfc":"NWM9709244W4","nombre":"NUEVA WAL MART DE MEXICO S DE RL DE CV","period":"202604","amount":724227.0},{"rfc":"TCH850701RM1","nombre":"TIENDAS CHEDRAUI SA DE CV","period":"202604","amount":417716.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202604","amount":3933.0},{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","period":"202602","amount":562.0},{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","period":"202603","amount":5726.0},{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","period":"202604","amount":5614.0},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","period":"202602","amount":4798.0},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","period":"202603","amount":7082.0},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","period":"202604","amount":10724.0},{"rfc":"PERA900428DP3","nombre":"ANA KAREN PENICHE ROSADO","period":"202604","amount":2261.0},{"rfc":"OPR240403K11","nombre":"ORUN PROMOTION SA DE CV","period":"202604","amount":76228.0},{"rfc":"PPA831231GI0","nombre":"PROVEEDORA DEL PANADERO SA DE CV","period":"202604","amount":16239.0},{"rfc":"TPF1011225L1","nombre":"TE LA PONEMOS FACIL SA DE CV","period":"202604","amount":1993.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202302","amount":473.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202301","amount":412.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202303","amount":483.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202304","amount":480.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202305","amount":454.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202306","amount":506.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202307","amount":341.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202308","amount":382.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202309","amount":256.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202310","amount":366.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202312","amount":1072.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202311","amount":358.0},{"rfc":"SSF830912738","nombre":"SUPER SAN FRANCISCO DE ASIS SA DE CV","period":"202604","amount":142265.0},{"rfc":"ADU800131T10","nombre":"ABARROTERA DEL DUERO SA DE CV","period":"202604","amount":118478.0},{"rfc":"CCO8605231N4","nombre":"CADENA COMERCIAL OXXO, SA DE CV","period":"202604","amount":338020.0},{"rfc":"EBE7711037Y5","nombre":"EMBOTELLADORAS BEPENSA SA DE CV","period":"202604","amount":324.0},{"rfc":"EME910610G1A","nombre":"LA EUROPEA MEXICO SAPI DE C V","period":"202604","amount":66055.0},{"rfc":"REGA651008EY3","nombre":"ADDY ROSA REJON GONZALEZ","period":"202604","amount":4842.0},{"rfc":"GMY2110131E7","nombre":"GO MART YUC S DE RL DE CV","period":"202604","amount":137193.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202604","amount":207.0},{"rfc":"REGA651008EY3","nombre":"ADDY ROSA REJON GONZALEZ","period":"202601","amount":5158.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202604","amount":9013.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202603","amount":21834.0},{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","period":"202604","amount":19156.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202604","amount":2182.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202507","amount":2213.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202403","amount":329.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202408","amount":329.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202405","amount":478.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202404","amount":380.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202406","amount":436.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202412","amount":1160.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202407","amount":351.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202409","amount":400.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202411","amount":375.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202401","amount":349.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202402","amount":217.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202410","amount":315.0}]},"202606":{"real":3556510.0,"omisos":[{"rfc":"MMM200716R9A","nombre":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","ref_avg":16196.75,"ref_months":12,"segment":"Media"},{"rfc":"CACW740424LM0","nombre":"WILBERT ANTONIO CARRIL CABAÑAS","ref_avg":2482.0,"ref_months":2,"segment":"Seguimiento"},{"rfc":"CDE040430JH8","nombre":"COMERCIAL DELI SA. DE CV.","ref_avg":15.0,"ref_months":10,"segment":"Seguimiento"},{"rfc":"SDE900301DT6","nombre":"SUPER DELIS SA DE CV","ref_avg":5.58,"ref_months":12,"segment":"Seguimiento"}],"alta_count":0,"media_count":1,"seguimiento_count":3,"total_omisos":4,"alta_est":0,"media_est":16196.75,"proyeccion":3572706.75,"contributors":[{"rfc":"CNC820428674","nombre":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","period":"202605","amount":437474.0},{"rfc":"SEM980701STA","nombre":"7-ELEVEN MEXICO SA DE CV","period":"202605","amount":55350.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202603","amount":212.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202601","amount":330.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202602","amount":171.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202506","amount":177.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202604","amount":143.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202501","amount":352.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202505","amount":267.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202502","amount":329.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202503","amount":279.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202504","amount":220.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202508","amount":206.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202507","amount":245.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202509","amount":223.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202510","amount":275.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202511","amount":217.0},{"rfc":"CCU920407SL8","nombre":"CENTRO COMERCIAL UMAN S A DE C V","period":"202512","amount":840.0},{"rfc":"EUMF691117U18","nombre":"FELICIA DEL CARMEN ESQUIVEL MIS","period":"202605","amount":526.0},{"rfc":"PEMO610712FY2","nombre":"ORLANDO DE LA CRUZ PERAZA MARTIN","period":"202605","amount":51.0},{"rfc":"GUSR401216LC3","nombre":"RAUL GUILLERMO GUEVARA SOSA","period":"202605","amount":63.0},{"rfc":"CSI2104273D7","nombre":"LA CAVA SILVIOS SAS DE CV","period":"202605","amount":518.0},{"rfc":"EIKE740529TY0","nombre":"EDWIN ESPINOSA KU","period":"202604","amount":185.0},{"rfc":"CME910715UB9","nombre":"COSTCO DE MEXICO SA DE CV","period":"202605","amount":253780.0},{"rfc":"DLI931201MI9","nombre":"DISTRIBUIDORA LIVERPOOL SA DE CV","period":"202605","amount":27129.0},{"rfc":"CCO8605231N4","nombre":"CADENA COMERCIAL OXXO, SA DE CV","period":"202605","amount":368194.0},{"rfc":"DMA210729D95","nombre":"DESTILADOS DEL MAYAB S DE RL DE CV","period":"202605","amount":662.0},{"rfc":"NWM9709244W4","nombre":"NUEVA WAL MART DE MEXICO S DE RL DE CV","period":"202605","amount":1027752.0},{"rfc":"DER900714GB2","nombre":"DESARROLLO EMPRESARIAL RODAS SA DE CV","period":"202605","amount":5618.0},{"rfc":"TCH850701RM1","nombre":"TIENDAS CHEDRAUI SA DE CV","period":"202605","amount":398117.0},{"rfc":"GIS9105308K5","nombre":"GRUPO INDUSTRIAL SANTA CLARA SA CV","period":"202605","amount":4127.0},{"rfc":"GOCA840623JA0","nombre":"ADRIANA DEL CARMEN GOMEZ CASTRO","period":"202605","amount":618.0},{"rfc":"EIKE740529TY0","nombre":"EDWIN ESPINOSA KU","period":"202605","amount":116.0},{"rfc":"COCM930303AM6","nombre":"MELCHOR ALFREDO COUOH CONTRERAS","period":"202605","amount":1229.0},{"rfc":"CKA231113JV6","nombre":"CAVA KASAK SA DE CV","period":"202605","amount":25.0},{"rfc":"CACM710426320","nombre":"MARIA MARISOL CHAN COBA","period":"202605","amount":193.0},{"rfc":"ADU800131T10","nombre":"ABARROTERA DEL DUERO SA DE CV","period":"202605","amount":120002.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202508","amount":2444.0},{"rfc":"BAAG840104PU4","nombre":"GERARDO JOSE BASULTO ANDERE","period":"202605","amount":2499.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202510","amount":171.0},{"rfc":"OPR240403K11","nombre":"ORUN PROMOTION SA DE CV","period":"202605","amount":2724.0},{"rfc":"CSL000915HJ9","nombre":"CASA SANTOS LUGO SA. DE CV.","period":"202605","amount":9220.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202508","amount":307.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202509","amount":619.0},{"rfc":"TPF1011225L1","nombre":"TE LA PONEMOS FACIL SA DE CV","period":"202605","amount":5521.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202601","amount":586.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202507","amount":263.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202512","amount":1602.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202603","amount":62.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202602","amount":792.0},{"rfc":"DMA241018SE0","nombre":"DESTILADORA LA MANUELA S DE RL DE CV","period":"202511","amount":26.0},{"rfc":"PPA831231GI0","nombre":"PROVEEDORA DEL PANADERO SA DE CV","period":"202605","amount":15980.0},{"rfc":"TCA820316NX8","nombre":"TIENDAS CHAPUR S A DE C V","period":"202605","amount":4834.0},{"rfc":"SSF830912738","nombre":"SUPER SAN FRANCISCO DE ASIS SA DE CV","period":"202605","amount":142545.0},{"rfc":"EME910610G1A","nombre":"LA EUROPEA MEXICO SAPI DE C V","period":"202605","amount":70456.0},{"rfc":"CCF121101KQ4","nombre":"COMERCIAL CITY FRESKO S DE RL DE CV","period":"202604","amount":82056.0},{"rfc":"EBE7711037Y5","nombre":"EMBOTELLADORAS BEPENSA SA DE CV","period":"202605","amount":154.0},{"rfc":"REGA651008EY3","nombre":"ADDY ROSA REJON GONZALEZ","period":"202605","amount":5242.0},{"rfc":"CCF121101KQ4","nombre":"COMERCIAL CITY FRESKO S DE RL DE CV","period":"202603","amount":103092.0},{"rfc":"CCF121101KQ4","nombre":"COMERCIAL CITY FRESKO S DE RL DE CV","period":"202605","amount":58381.0},{"rfc":"TSO991022PB6","nombre":"TIENDAS SORIANA SA DE CV","period":"202605","amount":185076.0},{"rfc":"GMY2110131E7","nombre":"GO MART YUC S DE RL DE CV","period":"202605","amount":124393.0},{"rfc":"PERA900428DP3","nombre":"ANA KAREN PENICHE ROSADO","period":"202605","amount":2081.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202412","amount":7337.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202411","amount":3704.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202510","amount":2956.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202501","amount":3136.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202502","amount":2506.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202503","amount":3308.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202504","amount":2158.0},{"rfc":"ROCF961209MC1","nombre":"JOSE FERNANDO RODRIGUEZ CABALLERO","period":"202505","amount":4064.0}]}};
-var lastUpdated = '25/06/2026 19:13';
-
-const FOLDER_ID    = "1sqAqz7fBqOPhHkNHUXIQ-apDNj0FvOfz";
-const API_KEY      = "AIzaSyAId7gthv7EEzmaTrfbt07FK4Kf-ii51uM";
-const YEAR         = 2026;
-const MONTHLY_GOALS = [5971005,2033044,2357586,2380846,2204240,2495661,2249735,2324560,2360836,3233310,3540960,4050214];
-const MESES        = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-const MESES_ES_NORM = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
-const ALTA_MIN     = 50000;
-const MEDIA_MIN    = 10000;
-</script>
-
-<!-- ════════════ HTML ════════════════════════════════════════════════════════ -->
-<header>
-  <div class="header-left">
-    <h1>Impuesto a la Venta Final de Bebidas con Contenido Alcohólico — 2026</h1>
-    <p>AAFY &nbsp;·&nbsp; Dashboard de Proyección de Cierre</p>
+<div class="header">
+  <div>
+    <h1>AAFY &middot; Bebidas con Contenido Alcohólico &middot; Proyección de Cierre 2026</h1>
+    <div class="sub">Agencia de Administración Fiscal de Yucatán &middot; Datos actualizados automáticamente</div>
   </div>
   <div class="header-right">
-    <select id="mesSelector"></select>
-    <button class="btn-actualizar" onclick="fetchFromDrive()">
-      ↻ Actualizar
-    </button>
-    <span id="lastUpdatedBadge"></span>
+    <select class="month-sel" id="monthSel" onchange="switchMonth(+this.value)"></select>
+    <button class="btn-refresh" id="btnRefresh" onclick="loadFromDrive()">&#8635; Actualizar</button>
+    <button class="btn-hdr-exp" onclick="window.print()">PDF</button>
+    <button class="btn-hdr-exp" onclick="exportPNG()">PNG</button>
+    <button class="btn-hdr-exp" onclick="exportExcel()">XLS</button>
   </div>
-</header>
-
-<div class="spinner" id="spinner">
-  <div class="spinner-ring"></div>
-  <div class="spinner-msg" id="spinnerMsg">Cargando datos de Drive…</div>
 </div>
+<div class="gold-bar"></div>
 
-<main>
-  <!-- KPI CARDS -->
-  <div class="kpi-grid">
-    <div class="kpi-card real">
+<div class="content">
+  <div class="status-bar" id="statusBar">
+    <span class="spinner" id="spinner" style="display:none"></span>
+    <span id="statusMsg">Iniciando...</span>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi-card" style="border-top-color:var(--teal)">
       <div class="kpi-label">Acumulado Real</div>
-      <div class="kpi-value" id="kpiReal">—</div>
-      <div class="kpi-sub" id="kpiRealSub"></div>
+      <div class="kpi-sub" id="kpiAcumSub">-</div>
+      <div class="kpi-val" id="kpiAcumVal">-</div>
+      <div class="kpi-note" id="kpiAcumNote"></div>
     </div>
-    <div class="kpi-card meta">
+    <div class="kpi-card" style="border-top-color:var(--gold)">
       <div class="kpi-label">Meta del Mes</div>
-      <div class="kpi-value" id="kpiMeta">—</div>
-      <div class="kpi-sub" id="kpiMetaSub"></div>
+      <div class="kpi-sub" id="kpiMetaSub">-</div>
+      <div class="kpi-val" id="kpiMetaVal">-</div>
+      <div class="kpi-note" id="kpiMetaNote"></div>
     </div>
-    <div class="kpi-card proyeccion">
-      <div class="kpi-label">Proyección de Cierre</div>
-      <div class="kpi-value" id="kpiProy">—</div>
-      <div class="kpi-sub" id="kpiProySub"></div>
+    <div class="kpi-card" id="kpiProyCard" style="border-top-color:#888">
+      <div class="kpi-label">Proyección Cierre</div>
+      <div class="kpi-sub" id="kpiProySub">-</div>
+      <div class="kpi-val" id="kpiProyVal">-</div>
+      <div class="kpi-note" id="kpiProyNote"></div>
     </div>
-    <div class="kpi-card omisos">
+    <div class="kpi-card" style="border-top-color:#E57373">
       <div class="kpi-label">Omisos Detectados</div>
-      <div class="kpi-value" id="kpiOmisos">—</div>
-      <div class="kpi-sub" id="kpiOmisosSub"></div>
+      <div class="kpi-sub" id="kpiOmisosSub">-</div>
+      <div class="kpi-val" id="kpiOmisosVal">-</div>
+      <div class="kpi-note" id="kpiOmisosNote"></div>
     </div>
   </div>
-
-  <!-- YTD -->
-  <div class="ytd-card">
-    <div class="ytd-header">
-      <span class="ytd-title">Recaudación Anual Acumulada (YTD)</span>
-      <span class="ytd-pct" id="ytdPct">0%</span>
-    </div>
-    <div class="ytd-bar-track">
-      <div class="ytd-bar-fill" id="ytdBar" style="width:0%"></div>
-    </div>
-    <div class="ytd-meta">
-      <span>Real YTD: <b id="ytdReal">$0</b></span>
-      <span>Meta YTD: <b id="ytdMetaVal">$0</b></span>
-      <span>Diferencia: <b id="ytdDiff">$0</b></span>
-    </div>
+  <div id="ytdCard" style="margin-bottom:16px"></div>
+  <div class="section">
+    <div class="sec-title">Avance vs Meta</div>
+    <div id="avanceContent"></div>
+    <div style="font-size:11px;color:#999;margin-top:10px" id="periodDominant"></div>
   </div>
-
-  <!-- AVANCE VS META -->
-  <div class="avance-card">
-    <div class="section-title">Avance vs Meta por Mes</div>
-    <div id="avanceBars"></div>
+  <div class="section">
+    <div class="sec-title">Segmentos de Omisos</div>
+    <div class="seg-grid" id="segGrid"></div>
   </div>
-
-  <!-- SEGMENTOS -->
-  <div class="section-title">Segmentos de Omisos — Mes Seleccionado</div>
-  <div class="seg-grid">
-    <div class="seg-card alta">
-      <div class="seg-label">Alta Prioridad</div>
-      <div class="seg-count" id="segAltaCount">0</div>
-      <div class="seg-est" id="segAltaEst">Estimado: $0</div>
-    </div>
-    <div class="seg-card media">
-      <div class="seg-label">Media Prioridad</div>
-      <div class="seg-count" id="segMediaCount">0</div>
-      <div class="seg-est" id="segMediaEst">Estimado: $0</div>
-    </div>
-    <div class="seg-card seguimiento">
-      <div class="seg-label">Seguimiento</div>
-      <div class="seg-count" id="segSegCount">0</div>
-      <div class="seg-est">Monitoreo preventivo</div>
-    </div>
-    <div class="seg-card total">
-      <div class="seg-label">Omisos Totales</div>
-      <div class="seg-count" id="segTotal">0</div>
-      <div class="seg-est" id="segTotalEst">Exposición total: $0</div>
-    </div>
-  </div>
-
-  <!-- TABLA DE OMISOS -->
-  <div class="tabla-card">
-    <div class="section-title">Detalle de Omisos</div>
-    <div class="tabla-controls">
-      <input type="text" id="searchInput" placeholder="Buscar por RFC o nombre…" oninput="renderTable()">
-      <select id="filtroSegmento" onchange="renderTable()">
+  <div class="section" id="omisos-section">
+    <div class="sec-title">Detalle de Omisos</div>
+    <div class="table-header">
+      <input class="search-input" id="searchInput" type="text" placeholder="Buscar RFC o contribuyente..." oninput="renderTable()">
+      <select class="seg-filter" id="segFilter" onchange="renderTable()">
         <option value="">Todos los segmentos</option>
-        <option value="Alta">Alta</option>
-        <option value="Media">Media</option>
-        <option value="Seguimiento">Seguimiento</option>
+        <option value="alta">Alta</option>
+        <option value="media">Media</option>
+        <option value="seguimiento">Seguimiento</option>
+        <option value="omisos_totales">Omisos Totales</option>
       </select>
-      <div class="export-btns">
-        <button class="btn-exp" onclick="exportXLSX()">⬇ Excel</button>
-        <button class="btn-exp" onclick="exportPNG()">🖼 PNG</button>
-        <button class="btn-exp" onclick="window.print()">🖨 PDF</button>
-      </div>
+      <button class="btn-export-tbl" onclick="exportExcel()">&#8595; Exportar Excel</button>
     </div>
-    <table id="omisosTable">
-      <thead>
-        <tr>
-          <th onclick="sortBy('rfc')">RFC ↕</th>
-          <th onclick="sortBy('nombre')">Nombre ↕</th>
-          <th onclick="sortBy('segment')">Segmento ↕</th>
-          <th onclick="sortBy('ref_avg')" style="text-align:right">Prom. Ref. ↕</th>
-          <th onclick="sortBy('ref_months')" style="text-align:right">Meses Ref. ↕</th>
-        </tr>
-      </thead>
-      <tbody id="omisosBody"></tbody>
-    </table>
-    <div class="no-data" id="noData" style="display:none">Sin omisos para los filtros seleccionados.</div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead id="omisosHead"></thead>
+        <tbody id="omisosBody"></tbody>
+        <tfoot id="omisosFoot"></tfoot>
+      </table>
+    </div>
     <div class="pagination" id="pagination"></div>
   </div>
-</main>
+</div>
 
-<!-- ════════════ JAVASCRIPT ════════════════════════════════════════════════════ -->
+<div class="footer">
+  <span>AAFY - Bebidas con Contenido Alcohólico - Proyección de Cierre 2026</span>
+  <span id="footerUpdated"></span>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-// ── Estado ──────────────────────────────────────────────────────────────────
-let currentMes   = null;
-let currentOmisos = [];
-let sortCol      = 'ref_avg';
-let sortAsc      = false;
-let currentPage  = 1;
-const PAGE_SIZE  = 15;
+const FOLDER_ID = "1sqAqz7fBqOPhHkNHUXIQ-apDNj0FvOfz";
+const API_KEY   = "AIzaSyAId7gthv7EEzmaTrfbt07FK4Kf-ii51uM";
+const METAS = {
+  1:5971005, 2:2033044, 3:2357586,  4:2380846,
+  5:2204240, 6:2495661, 7:2249735,  8:2324560,
+  9:2360836,10:3233310,11:3540960, 12:4050214
+};
+const MONTH_NAMES = {
+  "enero":1,"febrero":2,"marzo":3,"abril":4,"mayo":5,"junio":6,
+  "julio":7,"agosto":8,"septiembre":9,"octubre":10,"noviembre":11,"diciembre":12
+};
+const MONTH_LABELS = {
+  1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
+  7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"
+};
 
-// ── Formato ─────────────────────────────────────────────────────────────────
-const fmt = n => '$' + (n||0).toLocaleString('es-MX', {minimumFractionDigits:0, maximumFractionDigits:0});
-const pct  = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '—';
+let allData = {};
+var lastUpdated = '';
+let currentMonth=null, allOmisos=[], currentPage=1;
+const PAGE_SIZE=50;
+let sortCol='seg', sortDir=1;
+const SEG_ORDER={alta:1,media:2,seguimiento:3,omisos_totales:4};
 
-// ── Inicialización ───────────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
-  // Poblar selector de mes
-  const sel = document.getElementById('mesSelector');
-  const months = Object.keys(allData).sort();
-
-  if (months.length === 0) {
-    // Sin datos aún: mostrar todos los meses del año
-    MESES.forEach((m, i) => {
-      const key = `${YEAR}${String(i+1).padStart(2,'0')}`;
-      const opt = document.createElement('option');
-      opt.value = key; opt.textContent = `${m} ${YEAR}`;
-      sel.appendChild(opt);
-    });
-    sel.value = `${YEAR}01`;
-  } else {
-    months.forEach(k => {
-      const idx = parseInt(k.slice(4)) - 1;
-      const opt = document.createElement('option');
-      opt.value = k; opt.textContent = `${MESES[idx]} ${YEAR}`;
-      sel.appendChild(opt);
-    });
-    sel.value = months[months.length - 1]; // último mes disponible
-  }
-
-  sel.addEventListener('change', () => { currentPage = 1; renderAll(); });
-
-  if (lastUpdated) document.getElementById('lastUpdatedBadge').textContent = 'Actualizado: ' + lastUpdated;
-
-  renderAll();
-});
-
-// ── Render principal ─────────────────────────────────────────────────────────
-function renderAll() {
-  const sel  = document.getElementById('mesSelector');
-  currentMes = sel.value;
-  const idx  = parseInt(currentMes.slice(4)) - 1;
-  const data = allData[currentMes] || {};
-  const goal = MONTHLY_GOALS[idx] || 0;
-
-  const real    = data.real || 0;
-  const proy    = data.proyeccion || real;
-  const omisos  = data.omisos || [];
-  const total_o = data.total_omisos || 0;
-
-  // KPI cards
-  document.getElementById('kpiReal').textContent    = fmt(real);
-  document.getElementById('kpiRealSub').textContent = `Meta: ${fmt(goal)} · ${pct(real,goal)} cumplido`;
-  document.getElementById('kpiMeta').textContent    = fmt(goal);
-  document.getElementById('kpiMetaSub').textContent = `${MESES[idx]} ${YEAR}`;
-  document.getElementById('kpiProy').textContent    = fmt(proy);
-  document.getElementById('kpiProySub').textContent = proy >= goal ? '✓ Alcanza meta' : `Brecha: ${fmt(goal - proy)}`;
-  document.getElementById('kpiOmisos').textContent  = total_o;
-  document.getElementById('kpiOmisosSub').textContent = `Alta: ${data.alta_count||0}  Media: ${data.media_count||0}  Seg: ${data.seguimiento_count||0}`;
-
-  // YTD
-  const months = Object.keys(allData).sort();
-  let ytdReal = 0, ytdGoal = 0;
-  months.forEach(k => {
-    const i = parseInt(k.slice(4)) - 1;
-    ytdReal += allData[k].real || 0;
-    ytdGoal += MONTHLY_GOALS[i] || 0;
-  });
-  const ytdP = ytdGoal ? Math.min((ytdReal/ytdGoal)*100, 100) : 0;
-  document.getElementById('ytdPct').textContent   = ytdP.toFixed(1) + '%';
-  document.getElementById('ytdBar').style.width   = ytdP + '%';
-  document.getElementById('ytdReal').textContent  = fmt(ytdReal);
-  document.getElementById('ytdMetaVal').textContent = fmt(ytdGoal);
-  document.getElementById('ytdDiff').textContent  = fmt(ytdReal - ytdGoal);
-
-  // Barras avance
-  renderAvanceBars(months);
-
-  // Segmentos
-  document.getElementById('segAltaCount').textContent  = data.alta_count || 0;
-  document.getElementById('segAltaEst').textContent    = 'Estimado: ' + fmt(data.alta_est || 0);
-  document.getElementById('segMediaCount').textContent = data.media_count || 0;
-  document.getElementById('segMediaEst').textContent   = 'Estimado: ' + fmt(data.media_est || 0);
-  document.getElementById('segSegCount').textContent   = data.seguimiento_count || 0;
-  document.getElementById('segTotal').textContent      = total_o;
-  document.getElementById('segTotalEst').textContent   = 'Exposición: ' + fmt((data.alta_est||0)+(data.media_est||0));
-
-  // Tabla
-  currentOmisos = omisos;
-  currentPage   = 1;
-  renderTable();
-}
-
-// ── Barras avance vs meta ────────────────────────────────────────────────────
-function renderAvanceBars(months) {
-  const container = document.getElementById('avanceBars');
-  if (!months.length) { container.innerHTML = '<p class="no-data">Sin datos</p>'; return; }
-
-  const maxGoal = Math.max(...months.map(k => {
-    const i = parseInt(k.slice(4))-1;
-    return Math.max(MONTHLY_GOALS[i]||0, (allData[k]||{}).proyeccion||0);
-  }));
-
-  container.innerHTML = months.map(k => {
-    const i      = parseInt(k.slice(4))-1;
-    const d      = allData[k] || {};
-    const real   = d.real || 0;
-    const goal   = MONTHLY_GOALS[i] || 0;
-    const alta_e = d.alta_est || 0;
-    const med_e  = d.media_est || 0;
-    const omisoEst = alta_e + med_e;
-    const realPct  = maxGoal ? Math.min((real/maxGoal)*100,100) : 0;
-    const omiPct   = maxGoal ? Math.min((omisoEst/maxGoal)*100,100) : 0;
-    const goalPct  = maxGoal ? Math.min((goal/maxGoal)*100,100) : 0;
-    const pctVal   = goal ? ((real/goal)*100).toFixed(0)+'%' : '—';
-    return `
-    <div class="bar-row">
-      <div class="bar-mes-label">${MESES[i].substring(0,3)}</div>
-      <div class="bar-track">
-        <div class="bar-real"  style="width:${realPct}%"></div>
-        <div class="bar-omiso" style="left:${realPct}%;width:${Math.min(omiPct,100-realPct)}%"></div>
-        <div class="bar-meta-line" style="left:${goalPct}%"></div>
-      </div>
-      <div class="bar-pct-label">${pctVal}</div>
-    </div>`;
-  }).join('');
-}
-
-// ── Tabla ────────────────────────────────────────────────────────────────────
-function sortBy(col) {
-  if (sortCol === col) sortAsc = !sortAsc;
-  else { sortCol = col; sortAsc = col !== 'ref_avg'; }
-  renderTable();
-}
-
-function renderTable() {
-  const q   = document.getElementById('searchInput').value.toLowerCase().trim();
-  const seg = document.getElementById('filtroSegmento').value;
-
-  let rows = currentOmisos.filter(o => {
-    const matchQ   = !q || o.rfc.toLowerCase().includes(q) || o.nombre.toLowerCase().includes(q);
-    const matchSeg = !seg || o.segment === seg;
-    return matchQ && matchSeg;
-  });
-
-  // Ordenar
-  rows.sort((a,b) => {
-    let av = a[sortCol], bv = b[sortCol];
-    if (typeof av === 'string') av = av.toLowerCase();
-    if (typeof bv === 'string') bv = bv.toLowerCase();
-    if (av < bv) return sortAsc ? -1 : 1;
-    if (av > bv) return sortAsc ? 1 : -1;
+function sortRows(rows){
+  return [...rows].sort((a,b)=>{
+    if(sortCol==='seg'){const d=(SEG_ORDER[a.seg]||9)-(SEG_ORDER[b.seg]||9);return d!==0?d:b.avg-a.avg;}
+    if(sortCol==='rfc')return sortDir*a.rfc.localeCompare(b.rfc);
+    if(sortCol==='contrib')return sortDir*(a.contrib||'').localeCompare(b.contrib||'');
+    if(sortCol==='count')return sortDir*(b.count-a.count);
+    if(sortCol==='avg')return sortDir*(b.avg-a.avg);
     return 0;
   });
+}
+function toggleSort(col){if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}currentPage=1;renderTable();}
 
-  const total = rows.length;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  if (currentPage > totalPages) currentPage = totalPages;
-  const slice = rows.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+function fmt(n){return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n);}
+function fmtK(n){if(n>=1e6)return '$'+(n/1e6).toFixed(1)+'M';if(n>=1e3)return '$'+(n/1e3).toFixed(0)+'K';return fmt(n);}
+function normalizeStr(s){return(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();}
 
-  const tbody = document.getElementById('omisosBody');
-  const nod   = document.getElementById('noData');
+function prevPeriod(p){p=String(p);let y=parseInt(p.slice(0,4)),m=parseInt(p.slice(4));m--;if(m===0){m=12;y--;}return y+String(m).padStart(2,'0');}
+function formatPeriod(p){const s=String(p);const L=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];try{return L[parseInt(s.slice(4,6))]+'-'+s.slice(2,4);}catch(e){return s;}}
 
-  if (!slice.length) {
-    tbody.innerHTML = '';
-    nod.style.display = 'block';
-  } else {
-    nod.style.display = 'none';
-    tbody.innerHTML = slice.map(o => `
-      <tr>
-        <td><code>${o.rfc}</code></td>
-        <td>${o.nombre}</td>
-        <td><span class="badge ${o.segment}">${o.segment}</span></td>
-        <td style="text-align:right">${fmt(o.ref_avg)}</td>
-        <td style="text-align:right">${o.ref_months}</td>
-      </tr>`).join('');
+async function driveListFiles(){const r=await fetch('https://www.googleapis.com/drive/v3/files?q=%27'+FOLDER_ID+'%27+in+parents+and+trashed%3Dfalse&fields=files(id,name,mimeType)&pageSize=40&key='+API_KEY);if(!r.ok)throw new Error('Drive list: '+r.status);return(await r.json()).files||[];}
+async function driveDownload(id){const r=await fetch('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media&key='+API_KEY);if(!r.ok)throw new Error('Drive dl: '+r.status);return await r.arrayBuffer();}
+
+// Alcohol: RFC=A(0), Contrib=B(1), Periodo=E(4), Rec=N(13)-I(8)
+const ALC_RFC=0, ALC_CONTRIB=1, ALC_PERIODO=4, ALC_N=13, ALC_I=8;
+
+function _findDataStart(rows,col){for(let i=0;i<Math.min(20,rows.length);i++){const v=String(rows[i][col]||'').trim();if(v.length>=12&&!/^[a-zA-Z\s]+$/.test(v))return i;}return -1;}
+
+function _parseAlcohol(rows){
+  const s=_findDataStart(rows,ALC_RFC);
+  if(s<0)return[];
+  const out=[];
+  for(let i=s;i<rows.length;i++){
+    const row=rows[i];
+    const rfc=String(row[ALC_RFC]||'').trim().toUpperCase();
+    if(!rfc||rfc.length<12)continue;
+    let p=String(row[ALC_PERIODO]||'').trim();
+    if(/^\d+\.?\d*$/.test(p))p=String(parseInt(p));
+    if(p.length!==6)continue;
+    const N=parseFloat(row[ALC_N])||0, I=parseFloat(row[ALC_I])||0;
+    out.push({rfc,periodo:p,recaudacion:N-I,contrib:String(row[ALC_CONTRIB]||'').trim()});
   }
-
-  // Paginación
-  const pag = document.getElementById('pagination');
-  if (totalPages <= 1) { pag.innerHTML = `<span>${total} registro(s)</span>`; return; }
-  let html = `<span>${total} registros</span> `;
-  if (currentPage > 1) html += `<button class="page-btn" onclick="goPage(${currentPage-1})">‹</button>`;
-  const start = Math.max(1, currentPage-2), end = Math.min(totalPages, currentPage+2);
-  for (let p = start; p <= end; p++)
-    html += `<button class="page-btn${p===currentPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
-  if (currentPage < totalPages) html += `<button class="page-btn" onclick="goPage(${currentPage+1})">›</button>`;
-  pag.innerHTML = html;
+  return out;
 }
 
-function goPage(p) { currentPage = p; renderTable(); }
-
-// ── ACTUALIZAR desde Drive (client-side) ─────────────────────────────────────
-function norm(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
-
-function segment(avg){
-  const a = Math.abs(avg);
-  if (a >= ALTA_MIN) return 'Alta';
-  if (a >= MEDIA_MIN) return 'Media';
-  return 'Seguimiento';
+function _parseWorkbook(buf){
+  let wb;
+  try{wb=XLSX.read(new Uint8Array(buf),{type:'array'});}catch(e){return[];}
+  const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:''});
+  return _parseAlcohol(rows);
 }
 
-async function fetchFromDrive(){
-  if (API_KEY === 'YOUR_GOOGLE_DRIVE_API_KEY'){
-    alert('Configura API_KEY en el HTML para usar esta función.');
-    return;
+function getDominant(records){const t={};for(const r of records)if(r.periodo)t[r.periodo]=(t[r.periodo]||0)+r.recaudacion;const k=Object.keys(t);if(!k.length)return null;return k.reduce((a,b)=>t[a]>t[b]?a:b);}
+function getMissingPeriods(paidSet,dominant,maxBack,stopBefore){const out=[];let p=String(dominant);while(!paidSet.has(p)){if(stopBefore&&parseInt(p)<parseInt(stopBefore))break;out.push(p);p=prevPeriod(p);if(out.length>=maxBack)break;}return out;}
+
+function computeMonth(monthNum,allMonthData){
+  const cur=allMonthData[monthNum]||[];
+  const dominant=getDominant(cur);
+  const acumulado=cur.reduce((s,r)=>s+r.recaudacion,0);
+  const refMonths=[];for(let m=Math.max(1,monthNum-4);m<monthNum;m++)if(allMonthData[m]&&allMonthData[m].length)refMonths.push(m);
+  const nRef=refMonths.length;
+  const globalPeriods={},globalContrib={};
+  for(let m=1;m<=monthNum;m++)for(const r of allMonthData[m]||[]){if(!globalPeriods[r.rfc])globalPeriods[r.rfc]={};const gp=globalPeriods[r.rfc];if(!gp[r.periodo]||r.recaudacion>gp[r.periodo])gp[r.periodo]=r.recaudacion;if(!globalContrib[r.rfc]&&r.contrib)globalContrib[r.rfc]=r.contrib;}
+  const rfcRefCount={},rfcRefPeriods={},rfcContrib={},paid2026InRef={};
+  for(const rm of refMonths){const seen=new Set();for(const r of allMonthData[rm]||[]){if(!rfcRefPeriods[r.rfc])rfcRefPeriods[r.rfc]={};const rp=rfcRefPeriods[r.rfc];if(!rp[r.periodo]||r.recaudacion>rp[r.periodo])rp[r.periodo]=r.recaudacion;if(String(r.periodo).startsWith('2026')){if(!paid2026InRef[r.rfc])paid2026InRef[r.rfc]=new Set();paid2026InRef[r.rfc].add(String(r.periodo));}if(!seen.has(r.rfc)){seen.add(r.rfc);rfcRefCount[r.rfc]=(rfcRefCount[r.rfc]||0)+1;}if(!rfcContrib[r.rfc]&&r.contrib)rfcContrib[r.rfc]=r.contrib;}}
+  const candidates=new Set();
+  for(const[rfc,cnt]of Object.entries(rfcRefCount))if(cnt>=2)candidates.add(rfc);
+  for(const[rfc,ps]of Object.entries(paid2026InRef))if(ps.size>=2)candidates.add(rfc);
+  const omisos=[];
+  for(const rfc of candidates){
+    const cnt=rfcRefCount[rfc]||0,p26=paid2026InRef[rfc]||new Set();
+    if(cnt<2&&p26.size<2)continue;
+    const paidSet=new Set(Object.keys(globalPeriods[rfc]||{}));
+    if(!dominant||paidSet.has(dominant))continue;
+    const has2026=[...paidSet].some(p=>p.startsWith('2026'));
+    const missing=has2026?getMissingPeriods(paidSet,dominant,12,null):getMissingPeriods(paidSet,dominant,12,'202601');
+    if(!missing.length)continue;
+    const refAmounts=Object.values(rfcRefPeriods[rfc]||{});if(!refAmounts.length)continue;
+    const avg=refAmounts.reduce((s,v)=>s+v,0)/refAmounts.length;
+    const seg=!has2026?'omisos_totales':cnt>=nRef?'alta':cnt>=3?'media':'seguimiento';
+    omisos.push({rfc,contrib:rfcContrib[rfc]||globalContrib[rfc]||'',count:cnt,avg:Math.round(avg*missing.length),nMissing:missing.length,pending:missing.map(formatPeriod),seg});
   }
-  spinner('Listando archivos en Drive…');
-  try {
-    const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents+and+trashed%3Dfalse&fields=files(id,name)&pageSize=200&key=${API_KEY}`;
-    const resp = await fetch(url);
-    if (!resp.ok) throw new Error('Error Drive API: ' + resp.status);
-    const {files} = await resp.json();
+  omisos.sort((a,b)=>b.avg-a.avg);
+  const esperado=omisos.filter(o=>o.seg==='alta'||o.seg==='media').reduce((s,o)=>s+o.avg,0);
+  const proyeccion=acumulado+esperado,meta=METAS[monthNum]||0;
+  const segments={};
+  for(const o of omisos){if(!segments[o.seg])segments[o.seg]={count:0,monto:0,omisos:[]};segments[o.seg].count++;segments[o.seg].monto+=o.avg;segments[o.seg].omisos.push({rfc:o.rfc,contrib:o.contrib,avg:o.avg,count:o.count,nMissing:o.nMissing,pending:o.pending});}
+  for(const s of Object.values(segments)){s.monto=Math.round(s.monto);s.omisos.sort((a,b)=>b.avg-a.avg);}
+  return{mes_label:MONTH_LABELS[monthNum]||String(monthNum),mes_num:monthNum,meta,dominant_period:dominant?parseInt(dominant):0,ref_months:refMonths,acumulado_real:Math.round(acumulado),total_omisos:omisos.length,total_esperado:Math.round(esperado),proyeccion_cierre:Math.round(proyeccion),meta_cruzada:proyeccion>=meta,pct_acumulado:meta?acumulado/meta*100:0,pct_proyeccion:meta?proyeccion/meta*100:0,segmentos:segments,omisos:omisos.slice(0,5000)};
+}
 
-    const raw = {};
-    for (const f of files){
-      const nameN = norm(f.name);
-      let monthIdx = MESES_ES_NORM.findIndex(m => nameN.includes(m));
-      if (monthIdx < 0) continue;
-      const mesKey = `${YEAR}${String(monthIdx+1).padStart(2,'0')}`;
-      spinner(`Descargando ${f.name}…`);
-      const dlUrl = `https://www.googleapis.com/drive/v3/files/${f.id}?alt=media&key=${API_KEY}`;
-      const buf = await (await fetch(dlUrl)).arrayBuffer();
-      const wb  = XLSX.read(buf, {type:'array'});
-      const ws  = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-      // detectar fila de inicio (RFC válido en col 0)
-      let start = 0;
-      for (let r=0; r<Math.min(20,rows.length); r++){
-        if (/^[A-ZÑ]{3,4}\d{6}/i.test(String(rows[r][0]||'').trim())){ start=r; break; }
-      }
-      if (!raw[mesKey]) raw[mesKey] = [];
-      for (let r=start; r<rows.length; r++){
-        const row = rows[r];
-        const rfc    = String(row[0]||'').trim().toUpperCase();
-        const nombre = String(row[1]||'').trim();
-        const colN   = parseFloat(row[13])||0;
-        const colI   = parseFloat(row[8])||0;
-        const amount = colN - colI;
-        if (/^[A-ZÑ]{3,4}\d{6}/.test(rfc) && amount !== 0)
-          raw[mesKey].push({rfc, nombre, amount});
-      }
+const SEG_CONFIG={alta:{label:'Alta',color:'#8B1A2E',bg:'#FFF0F2'},media:{label:'Media',color:'#C9A84C',bg:'#FFFBF0'},seguimiento:{label:'Seguimiento',color:'#1D9E75',bg:'#F0FBF7'},omisos_totales:{label:'Omisos Totales',color:'#666666',bg:'#F5F5F5'}};
+
+function renderDash(data){
+  if(!data)return;
+  currentMonth=data.mes_num;
+  const esperadoAltaMedia=(((data.segmentos||{}).alta||{}).monto||0)+(((data.segmentos||{}).media||{}).monto||0);
+  const proyeccionAltaMedia=(data.acumulado_real||0)+esperadoAltaMedia;
+  const pctProyAltaMedia=(data.meta&&data.meta>0)?proyeccionAltaMedia/data.meta*100:0;
+  const metaCruzada=proyeccionAltaMedia>=(data.meta||0);
+  document.getElementById('kpiAcumSub').textContent=(data.mes_label||'')+' 2026';
+  document.getElementById('kpiAcumVal').textContent=fmtK(data.acumulado_real||0);
+  document.getElementById('kpiAcumNote').textContent=fmt(data.acumulado_real||0);
+  document.getElementById('kpiMetaSub').textContent='Meta '+(data.mes_label||'');
+  document.getElementById('kpiMetaVal').textContent=fmtK(data.meta||0);
+  document.getElementById('kpiMetaNote').textContent=fmt(data.meta||0);
+  const pCard=document.getElementById('kpiProyCard');
+  pCard.style.borderTopColor=metaCruzada?'var(--teal)':'#E57373';
+  document.getElementById('kpiProySub').textContent=metaCruzada?'Supera meta':'Bajo meta';
+  document.getElementById('kpiProyVal').textContent=fmtK(proyeccionAltaMedia);
+  document.getElementById('kpiProyNote').textContent=Math.round(pctProyAltaMedia)+'% de la meta';
+  document.getElementById('kpiOmisosSub').textContent='Total detectados';
+  document.getElementById('kpiOmisosVal').textContent=(data.total_omisos||0).toLocaleString('es-MX');
+  document.getElementById('kpiOmisosNote').textContent='Estimado '+fmtK(esperadoAltaMedia);
+  // YTD
+  const ytdMeta=Object.keys(allData).filter(m=>Number(m)<=currentMonth).reduce((s,m)=>s+(allData[m].meta||0),0);
+  const ytdReal=Object.keys(allData).filter(m=>Number(m)<=currentMonth).reduce((s,m)=>s+(allData[m].acumulado_real||0),0);
+  const ytdPct=ytdMeta?ytdReal/ytdMeta*100:0;
+  const ytdOk=ytdReal>=ytdMeta;
+  document.getElementById('ytdCard').innerHTML=
+    '<div class="kpi-card" style="border-top-color:#5C6BC0;display:flex;align-items:center;gap:32px;flex-wrap:wrap">'+
+      '<div style="min-width:160px">'+
+        '<div class="kpi-label">Recaudación anual acumulada</div>'+
+        '<div class="kpi-sub">Enero–'+data.mes_label+' real vs. meta</div>'+
+        '<div class="kpi-val" style="color:#5C6BC0">'+fmtK(ytdReal)+'</div>'+
+        '<div class="kpi-note" style="margin-top:4px">'+
+          (ytdOk
+            ?'<span style="background:#1D9E75;color:#fff;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700">✓ Sobre meta anual</span>'
+            :'<span style="background:#E57373;color:#fff;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700">✗ Bajo meta anual</span>')+
+        '</div>'+
+      '</div>'+
+      '<div style="flex:1;min-width:240px">'+
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:5px">'+
+          '<span style="font-weight:700">'+Math.round(ytdPct)+'% de la meta acumulada</span>'+
+          '<span>Meta: '+fmt(ytdMeta)+'</span>'+
+        '</div>'+
+        '<div class="progress-wrap">'+
+          '<div class="progress-fill" style="width:'+Math.min(ytdPct,100)+'%;background:#5C6BC0"></div>'+
+        '</div>'+
+        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-top:4px">'+
+          '<span style="color:#5C6BC0;font-weight:600">'+fmt(ytdReal)+' recaudado</span>'+
+          '<span>'+(ytdPct>=100?'+ '+fmt(ytdReal-ytdMeta)+' sobre meta':'Falta '+fmt(ytdMeta-ytdReal))+'</span>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  // Avance vs Meta
+  const pA=data.pct_acumulado||0;
+  const maxP=Math.max(pctProyAltaMedia,pA,1);
+  const acumW=Math.min(pA/maxP*100,100);
+  const omisosW=Math.max(0,Math.min((pctProyAltaMedia-pA)/maxP*100,100-acumW));
+  document.getElementById('avanceContent').innerHTML=
+    '<div style="margin-bottom:18px">'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">'+
+        '<span>Acumulado real</span>'+
+        '<span style="font-weight:700;color:#8B1A2E">'+Math.round(pA)+'% de la meta</span>'+
+      '</div>'+
+      '<div class="progress-wrap">'+
+        '<div class="progress-fill" style="width:'+Math.min(pA,100)+'%;background:#8B1A2E"></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-top:4px">'+
+        '<span style="color:#8B1A2E;font-weight:600">'+fmtK(data.acumulado_real)+' recaudado</span>'+
+        '<span>Meta: '+fmtK(data.meta)+'</span>'+
+      '</div>'+
+    '</div>'+
+    '<div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">'+
+        '<span>Proyección de cierre (Alta + Media)</span>'+
+        '<span style="font-weight:700;color:#0D1B3E">'+Math.round(pctProyAltaMedia)+'% de la meta</span>'+
+      '</div>'+
+      '<div class="progress-wrap" style="background:#E8EAF0;position:relative;overflow:hidden">'+
+        '<div style="position:absolute;top:0;left:0;height:100%;width:'+acumW+'%;background:#0D1B3E;border-radius:99px 0 0 99px"></div>'+
+        '<div style="position:absolute;top:0;left:'+acumW+'%;height:100%;width:'+omisosW+'%;background:#C9A84C"></div>'+
+      '</div>'+
+      '<div style="display:flex;justify-content:space-between;font-size:11px;flex-wrap:wrap;gap:4px;margin-top:4px">'+
+        '<span style="color:#0D1B3E">▬ '+fmtK(data.acumulado_real)+' real</span>'+
+        '<span style="color:#C9A84C">▬ +'+fmtK(esperadoAltaMedia)+' omisos</span>'+
+        '<span style="color:#0D1B3E;font-weight:700">= '+fmtK(proyeccionAltaMedia)+'</span>'+
+      '</div>'+
+    '</div>';
+  if(data.dominant_period)document.getElementById('periodDominant').textContent='Periodo dominante: '+formatPeriod(data.dominant_period)+' – Meses de referencia: '+(data.ref_months?data.ref_months.length:0);
+  // Segmentos
+  const sg=document.getElementById('segGrid');sg.innerHTML='';
+  for(const[key,cfg]of Object.entries(SEG_CONFIG)){const s=(data.segmentos||{})[key];const card=document.createElement('div');card.className='seg-card';card.style.background=cfg.bg;card.style.borderColor=cfg.color;card.innerHTML='<div class="seg-badge" style="background:'+cfg.color+'">'+cfg.label+'</div><div class="seg-name">'+cfg.label+'</div><div class="seg-count">'+(s?s.count:0)+' contribuyentes</div><div class="seg-monto" style="color:'+cfg.color+'">'+(s?fmtK(s.monto):'$0')+'</div>';sg.appendChild(card);}
+  allOmisos=data.omisos||[];currentPage=1;renderTable();
+  if(lastUpdated)document.getElementById('footerUpdated').textContent='Actualizado: '+lastUpdated;
+}
+
+function renderTable(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  const seg=document.getElementById('segFilter').value;
+  let rows=allOmisos;
+  if(q)rows=rows.filter(o=>o.rfc.toLowerCase().includes(q)||(o.contrib||'').toLowerCase().includes(q));
+  if(seg)rows=rows.filter(o=>o.seg===seg);
+  rows=sortRows(rows);
+  const total=rows.length,pages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  currentPage=Math.min(currentPage,pages);
+  const pageRows=rows.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE);
+  const cols=[
+    {key:'rfc',label:'RFC',style:''},
+    {key:'contrib',label:'Contribuyente',style:''},
+    {key:'seg',label:'Segmento',style:''},
+    {key:'count',label:'Meses Ref.',style:'text-align:center'},
+    {key:'pending',label:'Periodos Pendientes',style:'',noSort:true},
+    {key:'avg',label:'Estimado',style:'text-align:right'}
+  ];
+  const si=sortDir===1?'▲':'▼';
+  document.getElementById('omisosHead').innerHTML='<tr>'+cols.map(c=>{
+    const ind=c.noSort?'':'<span class="sort-ind'+(sortCol===c.key?' on':'')+'">'+(sortCol===c.key?si:'⇅')+'</span>';
+    return '<th style="'+c.style+'"'+(c.noSort?'':' onclick="toggleSort(\''+c.key+'\')"')+'>'+c.label+ind+'</th>';
+  }).join('')+'</tr>';
+  const tbody=document.getElementById('omisosBody');tbody.innerHTML='';
+  for(const o of pageRows){const cfg=SEG_CONFIG[o.seg]||SEG_CONFIG.seguimiento;const tr=document.createElement('tr');tr.innerHTML='<td><span class="rfc-code">'+o.rfc+'</span></td><td>'+(o.contrib||'-')+'</td><td><span class="seg-pill" style="background:'+cfg.color+';color:#fff">'+cfg.label+'</span></td><td style="text-align:center">'+(o.count||0)+'</td><td style="font-size:11px;color:#555">'+((o.pending||[]).join(', '))+'</td><td>'+fmt(o.avg)+'</td>';tbody.appendChild(tr);}
+  document.getElementById('omisosFoot').innerHTML='<tr><td colspan="5">Total filtrado: '+total.toLocaleString('es-MX')+' omisos</td><td>'+fmt(rows.reduce((s,o)=>s+o.avg,0))+'</td></tr>';
+  renderPagination(pages);
+}
+function renderPagination(pages){const c=document.getElementById('pagination');c.innerHTML='';if(pages<=1)return;const add=(label,page,active,disabled)=>{const b=document.createElement('button');b.className='page-btn'+(active?' active':'');b.textContent=label;b.disabled=!!disabled;b.onclick=()=>{currentPage=page;renderTable();};c.appendChild(b);};add('«',1,false,currentPage===1);add('‹',currentPage-1,false,currentPage===1);const s=Math.max(1,currentPage-2),e=Math.min(pages,s+4);for(let p=s;p<=e;p++)add(String(p),p,p===currentPage,false);add('›',currentPage+1,false,currentPage===pages);add('»',pages,false,currentPage===pages);}
+
+function switchMonth(num){const data=allData[String(num)];if(data)renderDash(data);setStatus('Mostrando '+(MONTH_LABELS[num]||num));}
+function populateMonthSel(){const sel=document.getElementById('monthSel');const months=Object.keys(allData).map(Number).sort((a,b)=>a-b);sel.innerHTML=months.map(n=>'<option value="'+n+'">'+(MONTH_LABELS[n]||n)+'</option>').join('');if(months.length)sel.value=Math.max(...months);}
+function setStatus(msg,type){const bar=document.getElementById('statusBar');bar.className='status-bar'+(type==='error'?' error':type==='updating'?' updating':'');document.getElementById('statusMsg').textContent=msg;document.getElementById('spinner').style.display=type==='updating'?'inline-block':'none';}
+
+async function loadFromDrive(silentOnError=false){
+  const btn=document.getElementById('btnRefresh');btn.disabled=true;
+  setStatus(silentOnError?'Actualizando en segundo plano...':'Conectando con Google Drive...','updating');
+  try{
+    const files=await driveListFiles();
+    const monthFiles=[];
+    for(const f of files){
+      const nameN=normalizeStr(f.name);
+      const mn=Object.keys(MONTH_NAMES).find(m=>nameN.includes(m));
+      if(mn)monthFiles.push({...f,num:MONTH_NAMES[mn]});
     }
-
-    spinner('Calculando proyecciones…');
-    const computed = computeMonthData(raw);
-
-    // Merge con protección
-    for (const [mes, data] of Object.entries(computed)){
-      if (!allData[mes] || data.real > (allData[mes].real||0))
-        allData[mes] = data;
+    if(!monthFiles.length){
+      if(!silentOnError)setStatus('No se encontraron archivos con nombre de mes en Drive.','error');
+      else setStatus('Datos pre-cargados · Drive sin archivos');
+      btn.disabled=false;return;
     }
-
-    // Actualizar selector
-    const sel = document.getElementById('mesSelector');
-    const existing = new Set([...sel.options].map(o=>o.value));
-    Object.keys(allData).sort().forEach(k=>{
-      if (!existing.has(k)){
-        const idx = parseInt(k.slice(4))-1;
-        const opt = document.createElement('option');
-        opt.value=k; opt.textContent=`${MESES[idx]} ${YEAR}`;
-        sel.appendChild(opt);
-      }
-    });
-    sel.value = Object.keys(allData).sort().pop();
-
-    document.getElementById('lastUpdatedBadge').textContent =
-      'Actualizado: ' + new Date().toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'});
-    renderAll();
-  } catch(e){
-    alert('Error al actualizar: ' + e.message);
-  } finally {
-    hideSpinner();
+    monthFiles.sort((a,b)=>a.num-b.num);
+    const allMonthData={};
+    for(const f of monthFiles){
+      setStatus('Descargando '+f.name+'...','updating');
+      const recs=_parseWorkbook(await driveDownload(f.id));
+      if(!allMonthData[f.num])allMonthData[f.num]=[];
+      allMonthData[f.num].push(...recs);
+    }
+    setStatus('Calculando proyecciones...','updating');
+    const newData={};
+    for(const num of Object.keys(allMonthData).map(Number).sort((a,b)=>a-b))
+      newData[String(num)]=computeMonth(num,allMonthData);
+    // Protección: mantener mayor acumulado
+    for(const key of Object.keys(newData)){
+      if(allData[key]&&(newData[key].acumulado_real||0)<(allData[key].acumulado_real||0))
+        newData[key]=allData[key];
+    }
+    for(const key of Object.keys(allData)){if(!newData[key])newData[key]=allData[key];}
+    allData=newData;lastUpdated=new Date().toLocaleString('es-MX');
+    populateMonthSel();
+    const latest=Math.max(...Object.keys(newData).map(Number));
+    renderDash(newData[String(latest)]);document.getElementById('monthSel').value=latest;
+    setStatus('Actualizado - '+monthFiles.length+' archivos - '+lastUpdated);
+  }catch(e){
+    console.error(e);
+    if(silentOnError&&currentMonth){
+      setStatus('Datos al '+(lastUpdated||'...')+' · Sin conexión a Drive');
+    }else{
+      setStatus('Error: '+e.message,'error');
+    }
   }
+  finally{btn.disabled=false;}
 }
 
-function computeMonthData(raw){
-  const allMonths = Object.keys(raw).sort();
-  const result = {};
-  for (let i=0; i<allMonths.length; i++){
-    const mes = allMonths[i];
-    const currentRfcs = new Set(raw[mes].map(r=>r.rfc));
-    const refMonths   = allMonths.slice(0,i);
-    const refCount={}, refTotal={}, refName={};
-    for (const rm of refMonths){
-      for (const row of raw[rm]){
-        refCount[row.rfc]  = (refCount[row.rfc]||0)+1;
-        refTotal[row.rfc]  = (refTotal[row.rfc]||0)+row.amount;
-        refName[row.rfc]   = row.nombre;
-      }
-    }
-    const omisos = [];
-    for (const [rfc,cnt] of Object.entries(refCount)){
-      if (cnt>=2 && !currentRfcs.has(rfc)){
-        const avg = refTotal[rfc]/cnt;
-        omisos.push({rfc, nombre:refName[rfc], ref_avg:Math.round(avg*100)/100, ref_months:cnt, segment:segment(avg)});
-      }
-    }
-    const alta        = omisos.filter(o=>o.segment==='Alta');
-    const media       = omisos.filter(o=>o.segment==='Media');
-    const seguimiento = omisos.filter(o=>o.segment==='Seguimiento');
-    const alta_est    = alta.reduce((s,o)=>s+Math.abs(o.ref_avg),0);
-    const media_est   = media.reduce((s,o)=>s+Math.abs(o.ref_avg),0);
-    const real        = raw[mes].reduce((s,r)=>s+r.amount,0);
-    result[mes] = {
-      real:              Math.round(real*100)/100,
-      omisos,
-      alta_count:        alta.length,
-      media_count:       media.length,
-      seguimiento_count: seguimiento.length,
-      total_omisos:      omisos.length,
-      alta_est:          Math.round(alta_est*100)/100,
-      media_est:         Math.round(media_est*100)/100,
-      proyeccion:        Math.round((real+alta_est+media_est)*100)/100,
-      contributors:      raw[mes],
-    };
+function exportExcel(){
+  const ws=XLSX.utils.json_to_sheet(allOmisos.map(o=>({
+    'RFC':o.rfc,
+    'Contribuyente':o.contrib||'',
+    'Segmento':(SEG_CONFIG[o.seg]||{label:o.seg}).label,
+    'Meses Ref.':o.count,
+    'Periodos Pendientes':(o.pending||[]).join(', '),
+    'Estimado':o.avg
+  })));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'Omisos');
+  XLSX.writeFile(wb,'omisos-alcohol-'+(currentMonth?MONTH_LABELS[currentMonth]:'')+'-2026.xlsx');
+}
+
+function exportPNG(){html2canvas(document.querySelector('.content'),{scale:2,backgroundColor:'#F0EDE8'}).then(canvas=>{const a=document.createElement('a');a.download='alcohol-'+(currentMonth?MONTH_LABELS[currentMonth]:'')+'-2026.png';a.href=canvas.toDataURL('image/png');a.click();});}
+
+(function init(){
+  const months=Object.keys(allData).map(Number).filter(n=>n>0);
+  if(months.length){
+    populateMonthSel();
+    renderDash(allData[String(Math.max(...months))]);
+    if(lastUpdated)document.getElementById('footerUpdated').textContent='Actualizado: '+lastUpdated;
+    setStatus('✓ Datos al '+lastUpdated);
+  }else{
+    setStatus('Sin datos precargados — pulsa Actualizar para cargar desde Drive','error');
   }
-  return result;
-}
-
-// ── Spinner ──────────────────────────────────────────────────────────────────
-function spinner(msg){ document.getElementById('spinnerMsg').textContent=msg||''; document.getElementById('spinner').classList.add('show'); }
-function hideSpinner(){ document.getElementById('spinner').classList.remove('show'); }
-
-// ── Exportación ──────────────────────────────────────────────────────────────
-function exportXLSX(){
-  const mes  = document.getElementById('mesSelector').value;
-  const idx  = parseInt(mes.slice(4))-1;
-  const data = allData[mes] || {};
-  const omisos = data.omisos || [];
-
-  const rows = omisos.map(o=>({
-    RFC:         o.rfc,
-    Nombre:      o.nombre,
-    Segmento:    o.segment,
-    'Prom. Ref.':o.ref_avg,
-    'Meses Ref.':o.ref_months,
-  }));
-  const ws  = XLSX.utils.json_to_sheet(rows);
-  const wb  = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Omisos');
-  XLSX.writeFile(wb, `omisos_alcohol_${MESES[idx]}_${YEAR}.xlsx`);
-}
-
-function exportPNG(){
-  alert('Para exportar como PNG usa la captura de pantalla de tu sistema operativo (Win+Shift+S en Windows o Cmd+Shift+4 en Mac).');
-}
+})();
 </script>
 </body>
 </html>
