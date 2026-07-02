@@ -51,7 +51,7 @@ ALC_RFC    = 0   # A
 ALC_CONTRIB = 1  # B
 ALC_PERIODO = 4  # E  (YYYYMM como float)
 ALC_N      = 13  # N  (se suma)
-ALC_I      = 8   # I  (se resta)  → Recaudación = N - I
+ALC_I      = 7   # H  (se resta)  → Recaudación = N - H
 
 
 # ── Utilidades ────────────────────────────────────────────────────────────────
