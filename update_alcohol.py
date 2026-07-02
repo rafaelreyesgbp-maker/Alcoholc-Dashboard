@@ -10,8 +10,10 @@ los campos calculados que necesita renderDash() en el JavaScript.
 """
 
 import json
+import math
 import os
 import re
+import statistics
 import sys
 import unicodedata
 from datetime import datetime
@@ -113,7 +115,7 @@ def _parse_alcohol(ws) -> list:
             n_val = _cell_float(ws.cell(r, ALC_N))
             i_val = _cell_float(ws.cell(r, ALC_I))
             rec   = n_val - i_val
-            if rfc and re.match(r"^[A-Z]{3,4}\d{6}", rfc) and rec != 0:
+            if rfc and re.match(r"^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}", rfc) and rec != 0:
                 rows.append({"rfc": rfc, "contrib": contrib,
                              "periodo": periodo, "recaudacion": round(rec, 2)})
         except Exception:
@@ -159,98 +161,107 @@ def _get_missing_periods(paid_set: set, dominant: str, max_back: int, stop_befor
             break
     return out
 
+def _expected_period(month_num: int) -> str:
+    """Período esperado para el mes vigente: en mes M se paga el período M-1."""
+    m = month_num - 1
+    if m == 0:
+        return f"{YEAR - 1}12"
+    return f"{YEAR}{m:02d}"
+
+
 def compute_month(month_num: int, all_month_data: dict) -> dict:
-    cur      = all_month_data.get(month_num, [])
-    dominant = _get_dominant(cur)
+    cur       = all_month_data.get(month_num, [])
     acumulado = sum(r["recaudacion"] for r in cur)
+    meta      = MONTHLY_GOALS[month_num - 1]
 
-    ref_months = [m for m in range(max(1, month_num - 4), month_num)
-                  if all_month_data.get(m)]
-    n_ref = len(ref_months)
+    # Todos los meses anteriores con datos
+    prev_months = sorted(m for m in all_month_data if m < month_num)
+    n_prev      = len(prev_months)
 
-    # Periodos y nombres globales acumulados hasta este mes
-    global_periods = {}
-    global_contrib = {}
-    for m in range(1, month_num + 1):
-        for r in all_month_data.get(m, []):
-            gp = global_periods.setdefault(r["rfc"], {})
-            if r["periodo"] not in gp or r["recaudacion"] > gp[r["periodo"]]:
-                gp[r["periodo"]] = r["recaudacion"]
-            if r["rfc"] not in global_contrib and r["contrib"]:
-                global_contrib[r["rfc"]] = r["contrib"]
+    # Período esperado (determinístico)
+    expected_period = _expected_period(month_num)
 
-    # Acumulado por mes de referencia
-    rfc_ref_count   = {}
-    rfc_ref_periods = {}
-    rfc_contrib     = {}
-    paid_2026_in_ref = {}
+    # RFCs que ya pagaron este mes
+    paid_this_month = {r["rfc"] for r in cur}
 
-    for rm in ref_months:
-        seen = set()
-        for r in all_month_data.get(rm, []):
-            rp = rfc_ref_periods.setdefault(r["rfc"], {})
-            if r["periodo"] not in rp or r["recaudacion"] > rp[r["periodo"]]:
-                rp[r["periodo"]] = r["recaudacion"]
-            if str(r["periodo"]).startswith("2026"):
-                paid_2026_in_ref.setdefault(r["rfc"], set()).add(str(r["periodo"]))
-            if r["rfc"] not in seen:
-                seen.add(r["rfc"])
-                rfc_ref_count[r["rfc"]] = rfc_ref_count.get(r["rfc"], 0) + 1
-            if r["rfc"] not in rfc_contrib and r["contrib"]:
-                rfc_contrib[r["rfc"]] = r["contrib"]
+    # Paso 1: contar meses distintos pagados por RFC (sin duplicar por mes)
+    rfc_month_count    = {}   # RFC → meses anteriores pagados
+    rfc_monthly_totals = {}   # RFC → [total_mes1, total_mes2, ...]
+    rfc_contrib        = {}   # RFC → nombre contribuyente
+    global_periods     = {}   # RFC → set de períodos pagados
 
-    # Candidatos a omisos
-    candidates = set()
-    for rfc, cnt in rfc_ref_count.items():
-        if cnt >= 2:
-            candidates.add(rfc)
-    for rfc, ps in paid_2026_in_ref.items():
-        if len(ps) >= 2:
-            candidates.add(rfc)
+    for m in prev_months:
+        seen_this_month  = set()
+        month_totals: dict[str, float] = {}
+        for r in all_month_data[m]:
+            rfc = r["rfc"]
+            if rfc not in seen_this_month:
+                seen_this_month.add(rfc)
+                rfc_month_count[rfc] = rfc_month_count.get(rfc, 0) + 1
+            month_totals[rfc] = month_totals.get(rfc, 0.0) + r["recaudacion"]
+            if rfc not in rfc_contrib and r["contrib"]:
+                rfc_contrib[rfc] = r["contrib"]
+            global_periods.setdefault(rfc, set()).add(r["periodo"])
+        for rfc, total in month_totals.items():
+            rfc_monthly_totals.setdefault(rfc, []).append(total)
 
+    # Paso 2: candidatos = RFC con ≥2 meses pagados, excluir pagadores del mes vigente
     omisos = []
-    for rfc in candidates:
-        cnt = rfc_ref_count.get(rfc, 0)
-        p26 = paid_2026_in_ref.get(rfc, set())
-        if cnt < 2 and len(p26) < 2:
+    for rfc, cnt in rfc_month_count.items():
+        if cnt < 2 or rfc in paid_this_month:
             continue
-        paid_set = set(global_periods.get(rfc, {}).keys())
-        if not dominant or dominant in paid_set:
-            continue
-        has_2026 = any(p.startswith("2026") for p in paid_set)
-        missing = (_get_missing_periods(paid_set, dominant, 12, None) if has_2026
-                   else _get_missing_periods(paid_set, dominant, 12, "202601"))
+
+        # Paso 3: períodos pendientes
+        paid_set = global_periods.get(rfc, set())
+        missing  = []
+        p = expected_period
+        while p not in paid_set:
+            missing.append(p)
+            p = _prev_period(p)
+            if len(missing) >= 12:
+                break
+        # Solo 2026 en adelante
+        missing = [x for x in missing if x >= "202601"]
+        # Si vacío después del filtro y el período esperado es 2026+, asignar mínimo
         if not missing:
-            continue
-        ref_amounts = list(rfc_ref_periods.get(rfc, {}).values())
-        if not ref_amounts:
-            continue
-        avg = sum(ref_amounts) / len(ref_amounts)
-        if not has_2026:
-            seg = "omisos_totales"
-        elif cnt >= n_ref:
+            if expected_period >= "202601":
+                missing = [expected_period]
+            else:
+                continue
+
+        # Paso 4: mediana mensual × meses pendientes
+        monthly_vals = rfc_monthly_totals.get(rfc, [0])
+        median_val   = statistics.median(monthly_vals)
+        estimated    = round(median_val * len(missing))
+
+        # Paso 5: segmentación por frecuencia
+        if cnt == n_prev:
             seg = "alta"
-        elif cnt >= 3:
+        elif n_prev > 0 and cnt >= math.floor(n_prev * 0.75):
             seg = "media"
+        elif cnt >= 3:
+            seg = "baja"
         else:
             seg = "seguimiento"
+
         omisos.append({
             "rfc":      rfc,
-            "contrib":  rfc_contrib.get(rfc, global_contrib.get(rfc, "")),
+            "contrib":  rfc_contrib.get(rfc, ""),
             "count":    cnt,
-            "avg":      round(avg * len(missing)),
+            "avg":      estimated,
             "nMissing": len(missing),
-            "pending":  [_format_period(p) for p in missing],
+            "pending":  [_format_period(x) for x in missing],
             "seg":      seg,
         })
 
     omisos.sort(key=lambda o: o["avg"], reverse=True)
-    esperado = sum(o["avg"] for o in omisos if o["seg"] in ("alta", "media"))
+
+    # Paso 6: proyección = real + Alta + Media
+    esperado   = sum(o["avg"] for o in omisos if o["seg"] in ("alta", "media"))
     proyeccion = acumulado + esperado
-    meta = MONTHLY_GOALS[month_num - 1]
 
     # Segmentos
-    segments = {}
+    segments: dict = {}
     for o in omisos:
         s = segments.setdefault(o["seg"], {"count": 0, "monto": 0, "omisos": []})
         s["count"] += 1
@@ -261,20 +272,20 @@ def compute_month(month_num: int, all_month_data: dict) -> dict:
         s["omisos"].sort(key=lambda o: o["avg"], reverse=True)
 
     return {
-        "mes_label":       MONTH_LABELS[month_num],
-        "mes_num":         month_num,
-        "meta":            meta,
-        "dominant_period": int(dominant) if dominant else 0,
-        "ref_months":      ref_months,
-        "acumulado_real":  round(acumulado),
-        "total_omisos":    len(omisos),
-        "total_esperado":  round(esperado),
+        "mes_label":         MONTH_LABELS[month_num],
+        "mes_num":           month_num,
+        "meta":              meta,
+        "dominant_period":   int(expected_period) if expected_period.isdigit() else 0,
+        "ref_months":        prev_months,
+        "acumulado_real":    round(acumulado),
+        "total_omisos":      len(omisos),
+        "total_esperado":    round(esperado),
         "proyeccion_cierre": round(proyeccion),
-        "meta_cruzada":    proyeccion >= meta,
-        "pct_acumulado":   acumulado / meta * 100 if meta else 0,
-        "pct_proyeccion":  proyeccion / meta * 100 if meta else 0,
-        "segmentos":       segments,
-        "omisos":          omisos[:5000],
+        "meta_cruzada":      proyeccion >= meta,
+        "pct_acumulado":     acumulado / meta * 100 if meta else 0,
+        "pct_proyeccion":    proyeccion / meta * 100 if meta else 0,
+        "segmentos":         segments,
+        "omisos":            omisos[:5000],
     }
 
 
