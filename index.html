@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<title>Bebidas Alcohólicas · Proyección Cierre – AAFY 2026</title>
+<title>SIIFE · Bebidas con Contenido Alcohólico · Proyección de Cierre 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
 :root { color-scheme: light; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -81,21 +84,207 @@ tfoot td { font-weight: 700; font-size: 13px; border-top: 2px solid #ddd; }
   .seg-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   table { font-size: 11px; min-width: 560px; }
 }
+
+/* =====================================================================
+   SIIFE · Sistema Integral de Ingeniería Fiscal Estratégica
+   UI modernization layer — functional logic remains untouched
+   ===================================================================== */
+:root{
+  color-scheme: light;
+  --siife-vino:#7E163B;
+  --siife-vino-oscuro:#4A0B25;
+  --siife-vino-suave:#A22A56;
+  --siife-dorado:#D8A33C;
+  --siife-dorado-claro:#FFF2D3;
+  --siife-fondo:#F7F1EE;
+  --siife-superficie:#FFFFFF;
+  --siife-superficie-suave:#FCF9F7;
+  --siife-texto:#30252C;
+  --siife-texto-secundario:#776A72;
+  --siife-borde:#ECDDE3;
+  --siife-borde-fuerte:#DBC4CF;
+  --siife-verde:#267E60;
+  --siife-azul:#375BB5;
+  --siife-morado:#7B46B0;
+  --siife-naranja:#C99326;
+  --siife-rojo:#C83E4A;
+  --siife-sombra-suave:0 2px 6px rgba(74,11,37,.05);
+  --siife-sombra-media:0 8px 22px rgba(74,11,37,.07);
+  --siife-sombra-alta:0 14px 34px rgba(74,11,37,.10);
+  --burgundy:var(--siife-vino);
+  --gold:var(--siife-dorado);
+  --teal:var(--siife-verde);
+  --navy:var(--siife-vino-oscuro);
+  --cream:var(--siife-superficie-suave);
+}
+*{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+body{background:var(--siife-fondo);color:var(--siife-texto)}
+.header{
+  position:relative;
+  background:linear-gradient(180deg,#FFFFFF 0%,#FCF9F7 100%);
+  color:var(--siife-texto);
+  padding:19px 30px 18px;
+  border-bottom:1px solid var(--siife-borde);
+  box-shadow:var(--siife-sombra-suave);
+  align-items:flex-start;
+}
+.title-group{min-width:0;max-width:760px}
+.system-line{display:flex;align-items:center;gap:9px;margin-bottom:6px}
+.system-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:4px 10px;border-radius:999px;background:var(--siife-vino);color:#fff;
+  font-family:'Montserrat',sans-serif;font-size:10px;font-weight:900;letter-spacing:1.15px
+}
+.system-caption{color:var(--siife-vino);font-family:'Montserrat',sans-serif;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase}
+.header h1{
+  color:var(--siife-vino-oscuro);font-family:'Montserrat',sans-serif;font-size:clamp(1.12rem,1.8vw,1.48rem);
+  font-weight:800;line-height:1.18;letter-spacing:-.4px
+}
+.header h1 .imp-label{color:var(--siife-vino)}
+.header .sub{color:var(--siife-texto-secundario);font-size:12px;opacity:1;margin-top:6px;line-height:1.45}
+.header-pills{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+.header-pill{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;
+  border:1px solid var(--siife-borde);background:#FFF9FB;color:var(--siife-vino);font-size:10px;font-weight:800
+}
+.header-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--siife-dorado);box-shadow:0 0 0 3px rgba(216,163,60,.14)}
+.header-right{gap:8px;justify-content:flex-end;align-items:center;padding-top:1px}
+.period-wrap{display:flex;align-items:center;gap:7px}
+.period-label{font-size:10px;text-transform:uppercase;letter-spacing:.78px;color:var(--siife-texto-secundario);font-weight:800}
+select.month-sel{
+  appearance:auto;-webkit-appearance:auto;min-width:116px;background:#fff;border:1px solid var(--siife-borde-fuerte);
+  color:var(--siife-vino-oscuro);padding:8px 10px;border-radius:10px;font-size:12px;font-weight:800;outline:none
+}
+select.month-sel:focus{border-color:var(--siife-vino-suave);box-shadow:0 0 0 3px rgba(126,22,59,.11)}
+select.month-sel option{background:#fff;color:var(--siife-texto)}
+.btn-refresh,.btn-hdr-exp,.btn-export-tbl{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;border-radius:10px;font-weight:800;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease
+}
+.btn-refresh{
+  background:linear-gradient(180deg,#E6B44D 0%,var(--siife-dorado) 100%);color:var(--siife-vino-oscuro);
+  border:1px solid #C99326;padding:8px 13px;box-shadow:0 5px 12px rgba(216,163,60,.22)
+}
+.btn-refresh:hover,.btn-hdr-exp:hover,.btn-export-tbl:hover{transform:translateY(-1px);opacity:1}
+.btn-hdr-exp{
+  background:#fff;color:var(--siife-vino);border:1px solid var(--siife-borde-fuerte);padding:7px 10px;font-size:11px
+}
+.btn-hdr-exp:hover{background:#FFF7F9;border-color:var(--siife-vino-suave)}
+.btn-icon{display:inline-flex;align-items:center}
+.btn-icon svg{width:15px;height:15px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.gold-bar{height:3px;background:linear-gradient(90deg,var(--siife-vino),var(--siife-dorado),var(--siife-vino))}
+.content{max-width:1440px;padding:22px 30px 34px}
+.status-bar{
+  background:var(--siife-superficie);border:1px solid var(--siife-borde);border-left:3px solid var(--siife-verde);
+  border-radius:12px;padding:10px 14px;margin-bottom:16px;color:var(--siife-texto-secundario);font-size:11px;box-shadow:var(--siife-sombra-suave)
+}
+.kpi-row{gap:14px;margin-bottom:18px;grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpi-card{
+  position:relative;background:var(--siife-superficie);border:1px solid var(--siife-borde);border-top-width:3px;
+  border-radius:16px;padding:16px 17px;box-shadow:var(--siife-sombra-suave);overflow:hidden;
+  transition:transform .18s ease,box-shadow .18s ease
+}
+.kpi-card::after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.5),rgba(255,255,255,0) 45%);pointer-events:none}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--siife-sombra-media)}
+.kpi-top{position:relative;z-index:1;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.kpi-copy{min-width:0;flex:1}
+.kpi-label{color:var(--siife-texto-secundario);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.82px}
+.kpi-sub{color:#9B8E95;font-size:10px;margin-top:2px;margin-bottom:7px;line-height:1.3}
+.kpi-val{position:relative;z-index:1;font-family:'Montserrat',sans-serif;font-size:24px;font-weight:800;line-height:1.1;letter-spacing:-.7px}
+.kpi-note{position:relative;z-index:1;color:var(--siife-texto-secundario);font-size:11px;margin-top:5px}
+.icon-bubble,.section-icon{
+  display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;
+  border:1px solid rgba(255,255,255,.72);box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 7px 17px rgba(74,11,37,.07)
+}
+.icon-bubble{width:43px;height:43px;border-radius:14px}
+.icon-bubble svg,.section-icon svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.section{
+  background:var(--siife-superficie);border:1px solid var(--siife-borde);border-radius:16px;padding:19px;margin-bottom:16px;box-shadow:var(--siife-sombra-suave)
+}
+.section-title-row{display:flex;align-items:center;gap:11px;margin-bottom:16px}
+.section-icon{width:38px;height:38px;border-radius:12px}
+.section-title-copy{min-width:0}
+.sec-title{color:var(--siife-vino-oscuro);font-family:'Montserrat',sans-serif;font-size:13px;font-weight:800;letter-spacing:.1px;text-transform:none;opacity:1;margin:0}
+.sec-sub{font-size:11px;color:var(--siife-texto-secundario);margin-top:2px}
+.progress-wrap{height:10px;background:#F1E8EC;border-radius:99px;margin:7px 0 4px}
+.progress-fill{box-shadow:none}
+.ytd-card{display:flex;align-items:stretch;gap:25px;flex-wrap:wrap;margin-bottom:16px}
+.annual-left{min-width:180px;flex:0 0 205px;display:flex;align-items:center;gap:12px}
+.annual-left .icon-bubble{width:48px;height:48px;border-radius:15px}
+.annual-left .icon-bubble svg{width:22px;height:22px}
+.metric-chip{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:999px;background:#FFF7E6;border:1px solid #F2D8A5;color:#A66A00;font-size:10px;font-weight:800}
+.seg-grid{gap:12px}
+.seg-card{position:relative;overflow:hidden;border-radius:14px;padding:14px 15px;box-shadow:var(--siife-sombra-suave);transition:transform .18s ease,box-shadow .18s ease}
+.seg-card:hover{transform:translateY(-2px);box-shadow:var(--siife-sombra-media)}
+.seg-card-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.seg-card .icon-bubble{width:35px;height:35px;border-radius:11px;box-shadow:none}
+.seg-card .icon-bubble svg{width:17px;height:17px}
+.seg-badge{font-size:10px;padding:3px 8px;border-radius:999px;margin:0}
+.seg-name{font-family:'Montserrat',sans-serif;font-size:13px}
+.seg-count{color:var(--siife-texto-secundario)}
+.seg-monto{font-family:'Montserrat',sans-serif;font-size:17px}
+.table-title-bar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.table-header{background:var(--siife-superficie-suave);border:1px solid var(--siife-borde);padding:10px;border-radius:13px;align-items:center;gap:10px;margin-bottom:12px}
+.search-wrap{position:relative;flex:1;min-width:200px}
+.search-wrap .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:#92727F;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.search-input,.seg-filter{background:#fff;border:1px solid var(--siife-borde-fuerte);color:var(--siife-texto);border-radius:10px;padding:9px 12px;font-size:12px}
+.search-input{width:100%;padding-left:38px}
+.search-input:focus{border-color:var(--siife-vino-suave);box-shadow:0 0 0 3px rgba(126,22,59,.10)}
+.seg-filter{min-width:165px}
+.btn-export-tbl{background:linear-gradient(180deg,#1D8A63,#166D4E);border:1px solid #166D4E;color:#fff;padding:8px 14px;box-shadow:0 7px 15px rgba(29,110,67,.16)}
+.table-wrap{border:1px solid var(--siife-borde);border-radius:13px;overflow:hidden}
+table{font-size:12px}
+thead th{position:static;background:var(--siife-vino-oscuro);padding:11px 12px;font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:.55px}
+thead th:hover{background:var(--siife-vino)}
+tbody tr:nth-child(even){background:#FCF9F7}
+tbody tr:hover{background:#FFF3F6}
+td{padding:10px 12px;border-bottom:1px solid #F0E5E9;color:var(--siife-texto)}
+.rfc-code{color:var(--siife-vino);font-weight:800}
+tfoot tr{background:#FBF4F6!important}
+tfoot td{border-top:1px solid var(--siife-borde-fuerte)}
+.pagination{padding:14px 0 2px}
+.page-btn{border:1px solid var(--siife-borde-fuerte);border-radius:8px;background:#fff;color:var(--siife-vino-oscuro);padding:5px 10px}
+.page-btn.active{background:var(--siife-vino);color:#fff;border-color:var(--siife-vino)}
+.footer{background:var(--siife-vino-oscuro);padding:10px 30px;color:rgba(255,255,255,.8);opacity:1}
+@media print{.header-right,.gold-bar,#omisos-section{display:none!important}.section,.kpi-card{box-shadow:none!important}}
+@media(max-width:1050px){.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr))}.header-right{width:100%;justify-content:flex-start}.header{align-items:flex-start}}
+@media(max-width:640px){
+  .header{padding:16px}.content{padding:14px 16px 26px}.footer{padding:10px 16px}
+  .header-right{gap:7px}.period-wrap{flex:1}.month-sel{flex:1;min-width:0!important}.btn-refresh{flex:1}
+  .btn-hdr-exp{flex:1}.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi-card{padding:14px}.kpi-val{font-size:21px}
+  .icon-bubble{width:39px;height:39px}.annual-left{flex:1 1 100%;min-width:0}.section{padding:15px}
+  .table-title-bar{align-items:flex-start}.table-header{padding:8px}.search-wrap{min-width:100%}.seg-filter,.btn-export-tbl{flex:1}
+}
+
+
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div>
-    <h1>AAFY &middot; Bebidas con Contenido Alcohólico &middot; Proyección de Cierre 2026</h1>
-    <div class="sub">Agencia de Administración Fiscal de Yucatán &middot; Datos actualizados automáticamente</div>
+  <div class="title-group">
+    <div class="system-line">
+      <span class="system-chip">SIIFE</span>
+      <span class="system-caption">Ingeniería Fiscal Estratégica</span>
+    </div>
+    <h1><span class="imp-label">Bebidas con Contenido Alcohólico</span> · Proyección de Cierre 2026</h1>
+    <div class="sub">Seguimiento de recaudación, proyección y priorización para fortalecer la toma de decisiones.</div>
+    <div class="header-pills" aria-label="Capacidades del dashboard">
+      <span class="header-pill">Proyección</span>
+      <span class="header-pill">Análisis</span>
+      <span class="header-pill">Segmentación</span>
+      <span class="header-pill">Seguimiento estratégico</span>
+    </div>
   </div>
   <div class="header-right">
-    <select class="month-sel" id="monthSel" onchange="switchMonth(+this.value)"></select>
-    <button class="btn-refresh" id="btnRefresh" onclick="loadFromDrive()">&#8635; Actualizar</button>
-    <button class="btn-hdr-exp" onclick="window.print()">PDF</button>
-    <button class="btn-hdr-exp" onclick="exportPNG()">PNG</button>
-    <button class="btn-hdr-exp" onclick="exportExcel()">XLS</button>
+    <div class="period-wrap">
+      <span class="period-label">Periodo</span>
+      <select class="month-sel" id="monthSel" onchange="switchMonth(+this.value)"></select>
+    </div>
+    <button class="btn-refresh" id="btnRefresh" onclick="loadFromDrive()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></span>Actualizar</button>
+    <button class="btn-hdr-exp" onclick="window.print()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></span>PDF</button>
+    <button class="btn-hdr-exp" onclick="exportPNG()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>PNG</button>
+    <button class="btn-hdr-exp" onclick="exportExcel()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span>XLS</button>
   </div>
 </div>
 <div class="gold-bar"></div>
@@ -105,70 +294,75 @@ tfoot td { font-weight: 700; font-size: 13px; border-top: 2px solid #ddd; }
     <span class="spinner" id="spinner" style="display:none"></span>
     <span id="statusMsg">Iniciando...</span>
   </div>
+
   <div class="kpi-row">
     <div class="kpi-card" style="border-top-color:var(--teal)">
-      <div class="kpi-label">Acumulado Real</div>
-      <div class="kpi-sub" id="kpiAcumSub">-</div>
-      <div class="kpi-val" id="kpiAcumVal">-</div>
-      <div class="kpi-note" id="kpiAcumNote"></div>
+      <div class="kpi-top">
+        <div class="kpi-copy"><div class="kpi-label">Acumulado real</div><div class="kpi-sub" id="kpiAcumSub">-</div></div>
+        <span class="icon-bubble" style="background:#E9F7F1;color:#267E60" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M2 7h20v10H2z"/><path d="M12 9.5c1.9 0 3.5 1.1 3.5 2.5s-1.6 2.5-3.5 2.5-3.5-1.1-3.5-2.5 1.6-2.5 3.5-2.5Z"/><path d="M6 7v10"/><path d="M18 7v10"/></svg></span>
+      </div>
+      <div class="kpi-val" id="kpiAcumVal">-</div><div class="kpi-note" id="kpiAcumNote"></div>
     </div>
     <div class="kpi-card" style="border-top-color:var(--gold)">
-      <div class="kpi-label">Meta del Mes</div>
-      <div class="kpi-sub" id="kpiMetaSub">-</div>
-      <div class="kpi-val" id="kpiMetaVal">-</div>
-      <div class="kpi-note" id="kpiMetaNote"></div>
+      <div class="kpi-top">
+        <div class="kpi-copy"><div class="kpi-label">Meta del mes</div><div class="kpi-sub" id="kpiMetaSub">-</div></div>
+        <span class="icon-bubble" style="background:#FFF4DE;color:#C99326" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg></span>
+      </div>
+      <div class="kpi-val" id="kpiMetaVal">-</div><div class="kpi-note" id="kpiMetaNote"></div>
     </div>
-    <div class="kpi-card" id="kpiProyCard" style="border-top-color:#888">
-      <div class="kpi-label">Proyección Cierre</div>
-      <div class="kpi-sub" id="kpiProySub">-</div>
-      <div class="kpi-val" id="kpiProyVal">-</div>
-      <div class="kpi-note" id="kpiProyNote"></div>
+    <div class="kpi-card" id="kpiProyCard" style="border-top-color:#7E163B">
+      <div class="kpi-top">
+        <div class="kpi-copy"><div class="kpi-label">Proyección de cierre</div><div class="kpi-sub" id="kpiProySub">-</div></div>
+        <span class="icon-bubble" style="background:#FBE9EF;color:#7E163B" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 7-8"/><path d="M14 7h6v6"/></svg></span>
+      </div>
+      <div class="kpi-val" id="kpiProyVal">-</div><div class="kpi-note" id="kpiProyNote"></div>
     </div>
-    <div class="kpi-card" style="border-top-color:#E57373">
-      <div class="kpi-label">Omisos Detectados</div>
-      <div class="kpi-sub" id="kpiOmisosSub">-</div>
-      <div class="kpi-val" id="kpiOmisosVal">-</div>
-      <div class="kpi-note" id="kpiOmisosNote"></div>
+    <div class="kpi-card" style="border-top-color:#C83E4A">
+      <div class="kpi-top">
+        <div class="kpi-copy"><div class="kpi-label">Omisos detectados</div><div class="kpi-sub" id="kpiOmisosSub">-</div></div>
+        <span class="icon-bubble" style="background:#FFF0F2;color:#C83E4A" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="3"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 4.13a3 3 0 0 1 0 5.75"/></svg></span>
+      </div>
+      <div class="kpi-val" id="kpiOmisosVal">-</div><div class="kpi-note" id="kpiOmisosNote"></div>
     </div>
   </div>
+
   <div id="ytdCard" style="margin-bottom:16px"></div>
+
   <div class="section">
-    <div class="sec-title">Avance vs Meta</div>
+    <div class="section-title-row">
+      <span class="section-icon" style="background:#FBE9EF;color:#7E163B" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m8 14 3-3 2 2 5-6"/></svg></span>
+      <div class="section-title-copy"><div class="sec-title">Avance vs. meta</div><div class="sec-sub">Lectura de desempeño real y proyección de cierre priorizada.</div></div>
+    </div>
     <div id="avanceContent"></div>
     <div style="font-size:11px;color:#999;margin-top:10px" id="periodDominant"></div>
   </div>
+
   <div class="section">
-    <div class="sec-title">Segmentos de Omisos</div>
+    <div class="section-title-row">
+      <span class="section-icon" style="background:#EEF0FF;color:#375BB5" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg></span>
+      <div class="section-title-copy"><div class="sec-title">Segmentos de omisos</div><div class="sec-sub">Priorización para seguimiento y gestión operativa.</div></div>
+    </div>
     <div class="seg-grid" id="segGrid"></div>
   </div>
+
   <div class="section" id="omisos-section">
-    <div class="sec-title">Detalle de Omisos</div>
+    <div class="table-title-bar">
+      <div class="section-title-row" style="margin-bottom:0">
+        <span class="section-icon" style="background:#FFF4DE;color:#C99326" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></span>
+        <div class="section-title-copy"><div class="sec-title">Detalle de omisos</div><div class="sec-sub">Consulta, filtrado y exportación de contribuyentes priorizados.</div></div>
+      </div>
+    </div>
     <div class="table-header">
-      <input class="search-input" id="searchInput" type="text" placeholder="Buscar RFC o contribuyente..." oninput="renderTable()">
-      <select class="seg-filter" id="segFilter" onchange="renderTable()">
-        <option value="">Todos los segmentos</option>
-        <option value="alta">Alta</option>
-        <option value="media">Media</option>
-        <option value="baja">Baja</option>
-        <option value="seguimiento">Seguimiento</option>
-      </select>
-      <button class="btn-export-tbl" onclick="exportExcel()">&#8595; Exportar Excel</button>
+      <div class="search-wrap"><svg class="search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg><input class="search-input" id="searchInput" type="text" placeholder="Buscar RFC o contribuyente..." oninput="renderTable()"></div>
+      <select class="seg-filter" id="segFilter" onchange="renderTable()"><option value="">Todos los segmentos</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option><option value="seguimiento">Seguimiento</option></select>
+      <button class="btn-export-tbl" onclick="exportExcel()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span>Exportar Excel</button>
     </div>
-    <div style="overflow-x:auto">
-      <table>
-        <thead id="omisosHead"></thead>
-        <tbody id="omisosBody"></tbody>
-        <tfoot id="omisosFoot"></tfoot>
-      </table>
-    </div>
+    <div style="overflow-x:auto"><div class="table-wrap"><table><thead id="omisosHead"></thead><tbody id="omisosBody"></tbody><tfoot id="omisosFoot"></tfoot></table></div></div>
     <div class="pagination" id="pagination"></div>
   </div>
 </div>
 
-<div class="footer">
-  <span>AAFY - Bebidas con Contenido Alcohólico - Proyección de Cierre 2026</span>
-  <span id="footerUpdated"></span>
-</div>
+<div class="footer"><span>SIIFE · Bebidas con Contenido Alcohólico · Proyección de Cierre 2026</span><span id="footerUpdated"></span></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -187,9 +381,11 @@ const MONTH_LABELS = {
   1:"Enero",2:"Febrero",3:"Marzo",4:"Abril",5:"Mayo",6:"Junio",
   7:"Julio",8:"Agosto",9:"Septiembre",10:"Octubre",11:"Noviembre",12:"Diciembre"
 };
+// Año fiscal de trabajo utilizado por la función existente expectedPeriod().
+const YEAR = 2026;
 
-let allData = {"1":{"mes_label":"Enero","mes_num":1,"meta":5971005,"dominant_period":202512,"ref_months":[],"acumulado_real":7509316,"total_omisos":0,"total_esperado":0,"proyeccion_cierre":7509316,"meta_cruzada":true,"pct_acumulado":125.7630164436305,"pct_proyeccion":125.7630164436305,"segmentos":{},"omisos":[]},"2":{"mes_label":"Febrero","mes_num":2,"meta":2033044,"dominant_period":202601,"ref_months":[1],"acumulado_real":3522285,"total_omisos":0,"total_esperado":0,"proyeccion_cierre":3522285,"meta_cruzada":true,"pct_acumulado":173.2517840243497,"pct_proyeccion":173.2517840243497,"segmentos":{},"omisos":[]},"3":{"mes_label":"Marzo","mes_num":3,"meta":2357586,"dominant_period":202602,"ref_months":[1,2],"acumulado_real":2830921,"total_omisos":4,"total_esperado":202447,"proyeccion_cierre":3033368,"meta_cruzada":true,"pct_acumulado":120.07710429227183,"pct_proyeccion":128.66415053363906,"segmentos":{"alta":{"count":4,"monto":202447,"omisos":[{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":2,"avg":197081,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":2736,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":2482,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":148,"nMissing":1,"pending":["Feb-26"],"seg":"alta"}]}},"omisos":[{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":2,"avg":197081,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":2736,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":2482,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":148,"nMissing":1,"pending":["Feb-26"],"seg":"alta"}]},"4":{"mes_label":"Abril","mes_num":4,"meta":2380846,"dominant_period":202603,"ref_months":[1,2,3],"acumulado_real":3300501,"total_omisos":4,"total_esperado":49482,"proyeccion_cierre":3349983,"meta_cruzada":true,"pct_acumulado":138.62723586489844,"pct_proyeccion":140.70557272498937,"segmentos":{"alta":{"count":1,"monto":38749,"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":3,"avg":38749,"nMissing":1,"pending":["Mar-26"],"seg":"alta"}]},"media":{"count":3,"monto":10733,"omisos":[{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":5473,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":4964,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":296,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"}]}},"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":3,"avg":38749,"nMissing":1,"pending":["Mar-26"],"seg":"alta"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":5473,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":4964,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":296,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"}]},"5":{"mes_label":"Mayo","mes_num":5,"meta":2204240,"dominant_period":202604,"ref_months":[1,2,3,4],"acumulado_real":3088457,"total_omisos":2,"total_esperado":157,"proyeccion_cierre":3088614,"meta_cruzada":true,"pct_acumulado":140.11437048597247,"pct_proyeccion":140.12149312234604,"segmentos":{"seguimiento":{"count":1,"monto":7446,"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":7446,"nMissing":3,"pending":["Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"}]},"alta":{"count":1,"monto":157,"omisos":[{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":4,"avg":157,"nMissing":1,"pending":["Abr-26"],"seg":"alta"}]}},"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":7446,"nMissing":3,"pending":["Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"},{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":4,"avg":157,"nMissing":1,"pending":["Abr-26"],"seg":"alta"}]},"6":{"mes_label":"Junio","mes_num":6,"meta":2495661,"dominant_period":202605,"ref_months":[1,2,3,4,5],"acumulado_real":3543795,"total_omisos":2,"total_esperado":39242,"proyeccion_cierre":3583037,"meta_cruzada":true,"pct_acumulado":141.9982521664601,"pct_proyeccion":143.57066123964754,"segmentos":{"media":{"count":1,"monto":39242,"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":4,"avg":39242,"nMissing":1,"pending":["May-26"],"seg":"media"}]},"seguimiento":{"count":1,"monto":9928,"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":9928,"nMissing":4,"pending":["May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"}]}},"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":4,"avg":39242,"nMissing":1,"pending":["May-26"],"seg":"media"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":9928,"nMissing":4,"pending":["May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"}]},"7":{"mes_label":"Julio","mes_num":7,"meta":2249735,"dominant_period":202606,"ref_months":[1,2,3,4,5,6],"acumulado_real":4604,"total_omisos":35,"total_esperado":3084542,"proyeccion_cierre":3089146,"meta_cruzada":true,"pct_acumulado":0.2046463250116125,"pct_proyeccion":137.31155002700316,"segmentos":{"alta":{"count":21,"monto":2900865,"omisos":[{"rfc":"NWM9709244W4","contrib":"NUEVA WAL MART DE MEXICO S DE RL DE CV","count":6,"avg":702407,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CNC820428674","contrib":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","count":6,"avg":408206,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TCH850701RM1","contrib":"TIENDAS CHEDRAUI SA DE CV","count":6,"avg":407916,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CCO8605231N4","contrib":"CADENA COMERCIAL OXXO, SA DE CV","count":6,"avg":317388,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CME910715UB9","contrib":"COSTCO DE MEXICO SA DE CV","count":6,"avg":297705,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TSO991022PB6","contrib":"TIENDAS SORIANA SA DE CV","count":6,"avg":149772,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"SSF830912738","contrib":"SUPER SAN FRANCISCO DE ASIS SA DE CV","count":6,"avg":142818,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"ADU800131T10","contrib":"ABARROTERA DEL DUERO SA DE CV","count":6,"avg":134199,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"GMY2110131E7","contrib":"GO MART YUC S DE RL DE CV","count":6,"avg":121836,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"OPR240403K11","contrib":"ORUN PROMOTION SA DE CV","count":6,"avg":116492,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"SEM980701STA","contrib":"7-ELEVEN MEXICO SA DE CV","count":6,"avg":47986,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"DLI931201MI9","contrib":"DISTRIBUIDORA LIVERPOOL SA DE CV","count":6,"avg":24160,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"PPA831231GI0","contrib":"PROVEEDORA DEL PANADERO SA DE CV","count":6,"avg":15758,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CSL000915HJ9","contrib":"CASA SANTOS LUGO SA. DE CV.","count":6,"avg":9517,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TPF1011225L1","contrib":"TE LA PONEMOS FACIL SA DE CV","count":6,"avg":2076,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"GOCA840623JA0","contrib":"ADRIANA DEL CARMEN GOMEZ CASTRO","count":6,"avg":1000,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EUMF691117U18","contrib":"FELICIA DEL CARMEN ESQUIVEL MIS","count":6,"avg":872,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CACM710426320","contrib":"MARIA MARISOL CHAN COBA","count":6,"avg":312,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EBE7711037Y5","contrib":"EMBOTELLADORAS BEPENSA SA DE CV","count":6,"avg":286,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"GUSR401216LC3","contrib":"RAUL GUILLERMO GUEVARA SOSA","count":6,"avg":106,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"PEMO610712FY2","contrib":"ORLANDO DE LA CRUZ PERAZA MARTIN","count":6,"avg":53,"nMissing":1,"pending":["Jun-26"],"seg":"alta"}]},"media":{"count":9,"monto":183677,"omisos":[{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":5,"avg":90260,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":4,"avg":78483,"nMissing":2,"pending":["Jun-26","May-26"],"seg":"media"},{"rfc":"BAAG840104PU4","contrib":"GERARDO JOSE BASULTO ANDERE","count":5,"avg":5191,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":4,"avg":3767,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":4,"avg":2940,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"PERA900428DP3","contrib":"ANA KAREN PENICHE ROSADO","count":5,"avg":2261,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"COCM930303AM6","contrib":"MELCHOR ALFREDO COUOH CONTRERAS","count":5,"avg":565,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":5,"avg":160,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"CKA231113JV6","contrib":"CAVA KASAK SA DE CV","count":5,"avg":50,"nMissing":1,"pending":["Jun-26"],"seg":"media"}]},"seguimiento":{"count":2,"monto":14402,"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":12410,"nMissing":5,"pending":["Jun-26","May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"},{"rfc":"DMA210729D95","contrib":"DESTILADOS DEL MAYAB S DE RL DE CV","count":2,"avg":1992,"nMissing":1,"pending":["Jun-26"],"seg":"seguimiento"}]},"baja":{"count":3,"monto":16696,"omisos":[{"rfc":"CCU920407SL8","contrib":"CENTRO COMERCIAL UMAN S A DE C V","count":3,"avg":8790,"nMissing":2,"pending":["Jun-26","May-26"],"seg":"baja"},{"rfc":"REGA651008EY3","contrib":"ADDY ROSA REJON GONZALEZ","count":3,"avg":7388,"nMissing":1,"pending":["Jun-26"],"seg":"baja"},{"rfc":"CSI2104273D7","contrib":"LA CAVA SILVIOS SAS DE CV","count":3,"avg":518,"nMissing":1,"pending":["Jun-26"],"seg":"baja"}]}},"omisos":[{"rfc":"NWM9709244W4","contrib":"NUEVA WAL MART DE MEXICO S DE RL DE CV","count":6,"avg":702407,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CNC820428674","contrib":"CONTROLADORA DE NEGOCIOS COMERCIALES SA DE CV","count":6,"avg":408206,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TCH850701RM1","contrib":"TIENDAS CHEDRAUI SA DE CV","count":6,"avg":407916,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CCO8605231N4","contrib":"CADENA COMERCIAL OXXO, SA DE CV","count":6,"avg":317388,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CME910715UB9","contrib":"COSTCO DE MEXICO SA DE CV","count":6,"avg":297705,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TSO991022PB6","contrib":"TIENDAS SORIANA SA DE CV","count":6,"avg":149772,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"SSF830912738","contrib":"SUPER SAN FRANCISCO DE ASIS SA DE CV","count":6,"avg":142818,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"ADU800131T10","contrib":"ABARROTERA DEL DUERO SA DE CV","count":6,"avg":134199,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"GMY2110131E7","contrib":"GO MART YUC S DE RL DE CV","count":6,"avg":121836,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"OPR240403K11","contrib":"ORUN PROMOTION SA DE CV","count":6,"avg":116492,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":5,"avg":90260,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":4,"avg":78483,"nMissing":2,"pending":["Jun-26","May-26"],"seg":"media"},{"rfc":"SEM980701STA","contrib":"7-ELEVEN MEXICO SA DE CV","count":6,"avg":47986,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"DLI931201MI9","contrib":"DISTRIBUIDORA LIVERPOOL SA DE CV","count":6,"avg":24160,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"PPA831231GI0","contrib":"PROVEEDORA DEL PANADERO SA DE CV","count":6,"avg":15758,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":12410,"nMissing":5,"pending":["Jun-26","May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"},{"rfc":"CSL000915HJ9","contrib":"CASA SANTOS LUGO SA. DE CV.","count":6,"avg":9517,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CCU920407SL8","contrib":"CENTRO COMERCIAL UMAN S A DE C V","count":3,"avg":8790,"nMissing":2,"pending":["Jun-26","May-26"],"seg":"baja"},{"rfc":"REGA651008EY3","contrib":"ADDY ROSA REJON GONZALEZ","count":3,"avg":7388,"nMissing":1,"pending":["Jun-26"],"seg":"baja"},{"rfc":"BAAG840104PU4","contrib":"GERARDO JOSE BASULTO ANDERE","count":5,"avg":5191,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":4,"avg":3767,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":4,"avg":2940,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"PERA900428DP3","contrib":"ANA KAREN PENICHE ROSADO","count":5,"avg":2261,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"TPF1011225L1","contrib":"TE LA PONEMOS FACIL SA DE CV","count":6,"avg":2076,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"DMA210729D95","contrib":"DESTILADOS DEL MAYAB S DE RL DE CV","count":2,"avg":1992,"nMissing":1,"pending":["Jun-26"],"seg":"seguimiento"},{"rfc":"GOCA840623JA0","contrib":"ADRIANA DEL CARMEN GOMEZ CASTRO","count":6,"avg":1000,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EUMF691117U18","contrib":"FELICIA DEL CARMEN ESQUIVEL MIS","count":6,"avg":872,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"COCM930303AM6","contrib":"MELCHOR ALFREDO COUOH CONTRERAS","count":5,"avg":565,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"CSI2104273D7","contrib":"LA CAVA SILVIOS SAS DE CV","count":3,"avg":518,"nMissing":1,"pending":["Jun-26"],"seg":"baja"},{"rfc":"CACM710426320","contrib":"MARIA MARISOL CHAN COBA","count":6,"avg":312,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EBE7711037Y5","contrib":"EMBOTELLADORAS BEPENSA SA DE CV","count":6,"avg":286,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":5,"avg":160,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"GUSR401216LC3","contrib":"RAUL GUILLERMO GUEVARA SOSA","count":6,"avg":106,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"PEMO610712FY2","contrib":"ORLANDO DE LA CRUZ PERAZA MARTIN","count":6,"avg":53,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CKA231113JV6","contrib":"CAVA KASAK SA DE CV","count":5,"avg":50,"nMissing":1,"pending":["Jun-26"],"seg":"media"}]}};
-var lastUpdated = '04/07/2026 08:13';
+let allData = {};
+var lastUpdated = '';
 // ← Rellena con los totales reales de recaudación de alcohol por mes en 2025 (enero a diciembre)
 const PREV_YEAR_TOTALS = [6001186,2078783,2380841,2243791,2185607,2761992,2186365,2443853,2357698,5813472,8328567,4441067];
 let currentMonth=null, allOmisos=[], currentPage=1;
@@ -322,6 +518,31 @@ function computeMonth(monthNum,allMonthData){
 
 const SEG_CONFIG={alta:{label:'Alta',color:'#8B1A2E',bg:'#FFF0F2'},media:{label:'Media',color:'#C9A84C',bg:'#FFFBF0'},baja:{label:'Baja',color:'#1565C0',bg:'#E3F2FD'},seguimiento:{label:'Seguimiento',color:'#1D9E75',bg:'#F0FBF7'}};
 
+
+function siifeIcon(name){
+  const icons={
+    layers:'<svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5 9-5z"/><path d="m3 12 9 5 9-5"/><path d="m3 16 9 5 9-5"/></svg>',
+    target:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>',
+    bars:'<svg viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-7"/><path d="M22 20v-12"/></svg>',
+    chart:'<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m8 14 3-3 2 2 5-6"/></svg>',
+    search:'<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>',
+    shield:'<svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 5-3.4 8.3-7 9-3.6-.7-7-4-7-9V6l7-3z"/><path d="M9.5 12.5 11 14l3.5-4"/></svg>',
+    bottle:'<svg viewBox="0 0 24 24"><path d="M10 3h4"/><path d="M11 3v5l-4.5 7.5A3 3 0 0 0 9 20h6a3 3 0 0 0 2.5-4.5L13 8V3"/><path d="M8.5 14h7"/></svg>'
+  };
+  return icons[name]||icons.chart;
+}
+function siifeBubble(name,bg,color){return '<span class="icon-bubble" style="background:'+bg+';color:'+color+'">'+siifeIcon(name)+'</span>';}
+function siifeSegmentVisual(key){
+  const map={
+    alta:{icon:'target',bg:'#FDEBDC',color:'#A95516'},
+    media:{icon:'bars',bg:'#EAF1FF',color:'#375BB5'},
+    baja:{icon:'chart',bg:'#EAF7EF',color:'#21704C'},
+    seguimiento:{icon:'search',bg:'#F6EEF9',color:'#7B46B0'},
+    omisos_totales:{icon:'shield',bg:'#FFF0F2',color:'#C83E4A'}
+  };
+  return map[key]||map.seguimiento;
+}
+
 function renderDash(data){
   if(!data)return;
   currentMonth=data.mes_num;
@@ -357,58 +578,60 @@ function renderDash(data){
   const bar2026w=Math.min(ytdReal/maxBar*100,100);
   const bar2025w=has2025?Math.min(ytd2025/maxBar*100,100):0;
   document.getElementById('ytdCard').innerHTML=
-    '<div class="kpi-card" style="border-top-color:#5C6BC0;display:flex;align-items:center;gap:32px;flex-wrap:wrap">'+
-      '<div style="min-width:160px">'+
-        '<div class="kpi-label">Recaudación Anual</div>'+
+    '<div class="kpi-card ytd-card" style="border-top-color:#5C6BC0">'+
+      '<div class="annual-left">'+siifeBubble('layers','#EEF0FF','#5C6BC0')+'<div>'+ 
+        '<div class="kpi-label">Recaudación anual</div>'+
         '<div class="kpi-sub">Enero–'+data.mes_label+' real vs. meta</div>'+
-        '<div class="kpi-val" style="color:#5C6BC0">'+fmtK(ytdReal)+'</div>'+
-        '<div class="kpi-note" style="margin-top:4px">'+
+        '<div class="kpi-val" style="color:#5C6BC0;margin-top:6px">'+fmtK(ytdReal)+'</div>'+
+        '<div style="margin-top:8px">'+
           (ytdOk
-            ?'<span style="background:#1D9E75;color:#fff;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700">✓ Sobre meta anual</span>'
-            :'<span style="background:#E57373;color:#fff;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700">✗ Bajo meta anual</span>')+
-        '</div>'+
-      '</div>'+
-      '<div style="flex:1;min-width:280px">'+
-        // Barra vs meta
-        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:5px">'+
-          '<span style="font-weight:700">'+Math.round(ytdPct)+'% de la meta</span>'+
-          '<span>Meta: '+fmt(ytdMeta)+'</span>'+
-        '</div>'+
-        '<div class="progress-wrap">'+
-          '<div class="progress-fill" style="width:'+Math.min(ytdPct,100)+'%;background:var(--burgundy)"></div>'+
-        '</div>'+
-        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-top:4px;margin-bottom:14px">'+
-          '<span style="color:var(--burgundy);font-weight:600">'+fmt(ytdReal)+' recaudado</span>'+
-          '<span>'+(ytdPct>=100?'<span style="color:#1D9E75;font-weight:700">+ '+fmt(ytdReal-ytdMeta)+' sobre meta</span>':'Falta '+fmt(ytdMeta-ytdReal))+'</span>'+
-        '</div>'+
-        // Comparativo 2025
-        '<div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:6px;border-top:1px solid #eee;padding-top:12px">'+
-          '<span style="font-weight:700">vs. mismo periodo 2025</span>'+
+            ?'<span style="background:#1D9E75;color:#fff;padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700">✓ Sobre meta anual</span>'
+            :'<span style="background:#E57373;color:#fff;padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700">✗ Bajo meta anual</span>')+
+        '</div>'+ 
+      '</div></div>'+
+      '<div style="flex:1;min-width:280px;display:flex;flex-direction:column;gap:16px;justify-content:center">'+
+        '<div>'+ 
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:5px">'+
+            '<span class="metric-chip">'+Math.round(ytdPct)+'% de la meta</span>'+
+            '<span>Meta: '+fmt(ytdMeta)+'</span>'+ 
+          '</div>'+ 
+          '<div class="progress-wrap">'+
+            '<div class="progress-fill" style="width:'+Math.min(ytdPct,100)+'%;background:var(--burgundy)"></div>'+ 
+          '</div>'+ 
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:#888;margin-top:4px;margin-bottom:14px">'+
+            '<span style="color:var(--burgundy);font-weight:600">'+fmt(ytdReal)+' recaudado</span>'+ 
+            '<span>'+(ytdPct>=100?'<span style="color:#1D9E75;font-weight:700">+ '+fmt(ytdReal-ytdMeta)+' sobre meta</span>':'Falta '+fmt(ytdMeta-ytdReal))+'</span>'+ 
+          '</div>'+ 
+        '</div>'+ 
+        '<div>'+ 
+          '<div style="display:flex;justify-content:space-between;font-size:11px;color:#666;margin-bottom:6px;border-top:1px solid #F0E2E8;padding-top:12px">'+
+            '<span style="font-weight:700">vs. mismo periodo 2025</span>'+ 
+            (has2025
+              ?'<span style="font-weight:700;color:'+(diffVs2025>=0?'#1D9E75':'#E57373')+'">'+
+                (diffVs2025>=0?'▲':'▼')+' '+Math.abs(pctVs2025).toFixed(1)+'% '+(diffVs2025>=0?'más':'menos')+' que 2025&nbsp;&nbsp;'+(diffVs2025>=0?'+':'')+fmt(diffVs2025)+
+               '</span>'
+              :'<span style="color:#aaa;font-style:italic">Sin datos 2025</span>')+
+          '</div>'+ 
           (has2025
-            ?'<span style="font-weight:700;color:'+(diffVs2025>=0?'#1D9E75':'#E57373')+'">'+
-              (diffVs2025>=0?'▲':'▼')+' '+Math.abs(pctVs2025).toFixed(1)+'% '+(diffVs2025>=0?'más':'menos')+' que 2025&nbsp;&nbsp;'+(diffVs2025>=0?'+':'')+fmt(diffVs2025)+
-             '</span>'
-            :'<span style="color:#aaa;font-style:italic">Sin datos 2025</span>')+
-        '</div>'+
-        (has2025
-          ?'<div style="margin-bottom:4px">'+
-              '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'+
-                '<span style="font-size:11px;color:#aaa;width:32px">2025</span>'+
-                '<div style="flex:1;background:#F1F5F9;border-radius:99px;height:10px;overflow:hidden">'+
-                  '<div style="width:'+bar2025w+'%;height:100%;background:#F4A5B1;border-radius:99px"></div>'+
-                '</div>'+
-                '<span style="font-size:11px;color:#888;white-space:nowrap">'+fmt(ytd2025)+'</span>'+
-              '</div>'+
-              '<div style="display:flex;align-items:center;gap:8px">'+
-                '<span style="font-size:11px;color:var(--burgundy);font-weight:700;width:32px">2026</span>'+
-                '<div style="flex:1;background:#F1F5F9;border-radius:99px;height:10px;overflow:hidden">'+
-                  '<div style="width:'+bar2026w+'%;height:100%;background:var(--burgundy);border-radius:99px"></div>'+
-                '</div>'+
-                '<span style="font-size:11px;color:var(--burgundy);font-weight:700;white-space:nowrap">'+fmt(ytdReal)+'</span>'+
-              '</div>'+
-            '</div>'
-          :'')+
-      '</div>'+
+            ?'<div style="margin-bottom:4px">'+
+                '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">'+
+                  '<span style="font-size:11px;color:#aaa;width:32px">2025</span>'+ 
+                  '<div style="flex:1;background:#F1F5F9;border-radius:99px;height:10px;overflow:hidden">'+
+                    '<div style="width:'+bar2025w+'%;height:100%;background:#F4A5B1;border-radius:99px"></div>'+ 
+                  '</div>'+ 
+                  '<span style="font-size:11px;color:#888;white-space:nowrap">'+fmt(ytd2025)+'</span>'+ 
+                '</div>'+ 
+                '<div style="display:flex;align-items:center;gap:8px">'+
+                  '<span style="font-size:11px;color:var(--burgundy);font-weight:700;width:32px">2026</span>'+ 
+                  '<div style="flex:1;background:#F1F5F9;border-radius:99px;height:10px;overflow:hidden">'+
+                    '<div style="width:'+bar2026w+'%;height:100%;background:var(--burgundy);border-radius:99px"></div>'+ 
+                  '</div>'+ 
+                  '<span style="font-size:11px;color:var(--burgundy);font-weight:700;white-space:nowrap">'+fmt(ytdReal)+'</span>'+ 
+                '</div>'+ 
+              '</div>'
+            :'')+
+        '</div>'+ 
+      '</div>'+ 
     '</div>';
   // Avance vs Meta
   const pA=data.pct_acumulado||0;
@@ -447,7 +670,7 @@ function renderDash(data){
   if(data.dominant_period)document.getElementById('periodDominant').textContent='Periodo dominante: '+formatPeriod(data.dominant_period)+' – Meses de referencia: '+(data.ref_months?data.ref_months.length:0);
   // Segmentos
   const sg=document.getElementById('segGrid');sg.innerHTML='';
-  for(const[key,cfg]of Object.entries(SEG_CONFIG)){const s=(data.segmentos||{})[key];const card=document.createElement('div');card.className='seg-card';card.style.background=cfg.bg;card.style.borderColor=cfg.color;card.innerHTML='<div class="seg-badge" style="background:'+cfg.color+'">'+cfg.label+'</div><div class="seg-name">'+cfg.label+'</div><div class="seg-count">'+(s?s.count:0)+' contribuyentes</div><div class="seg-monto" style="color:'+cfg.color+'">'+(s?fmtK(s.monto):'$0')+'</div>';sg.appendChild(card);}
+  for(const[key,cfg]of Object.entries(SEG_CONFIG)){const s=(data.segmentos||{})[key];const card=document.createElement('div');card.className='seg-card';card.style.background=cfg.bg;card.style.borderColor=cfg.color;const visual=siifeSegmentVisual(key);card.innerHTML='<div class="seg-card-top">'+siifeBubble(visual.icon,visual.bg,visual.color)+'<span class="seg-badge" style="background:'+cfg.color+'">'+cfg.label+'</span></div><div class="seg-name" style="color:'+cfg.color+'">'+cfg.label+'</div><div class="seg-count">'+(s?s.count:0)+' contribuyentes</div><div class="seg-monto" style="color:'+cfg.color+'">'+(s?fmtK(s.monto):'$0')+'</div>';sg.appendChild(card);}
   allOmisos=data.omisos||[];currentPage=1;renderTable();
   if(lastUpdated)document.getElementById('footerUpdated').textContent='Actualizado: '+lastUpdated;
 }
@@ -476,6 +699,7 @@ function renderTable(){
     return '<th style="'+c.style+'"'+(c.noSort?'':' onclick="toggleSort(\''+c.key+'\')"')+'>'+c.label+ind+'</th>';
   }).join('')+'</tr>';
   const tbody=document.getElementById('omisosBody');tbody.innerHTML='';
+  if(!pageRows.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:32px;color:#8A7A83">Sin resultados para los filtros seleccionados.</td></tr>';}
   for(const o of pageRows){const cfg=SEG_CONFIG[o.seg]||SEG_CONFIG.seguimiento;const tr=document.createElement('tr');tr.innerHTML='<td><span class="rfc-code">'+o.rfc+'</span></td><td>'+(o.contrib||'-')+'</td><td><span class="seg-pill" style="background:'+cfg.color+';color:#fff">'+cfg.label+'</span></td><td style="text-align:center">'+(o.count||0)+'</td><td style="font-size:11px;color:#555">'+((o.pending||[]).join(', '))+'</td><td>'+fmt(o.avg)+'</td>';tbody.appendChild(tr);}
   document.getElementById('omisosFoot').innerHTML='<tr><td colspan="5">Total filtrado: '+total.toLocaleString('es-MX')+' omisos</td><td>'+fmt(rows.reduce((s,o)=>s+o.avg,0))+'</td></tr>';
   renderPagination(pages);
@@ -550,7 +774,7 @@ function exportExcel(){
   XLSX.writeFile(wb,'omisos-alcohol-'+(currentMonth?MONTH_LABELS[currentMonth]:'')+'-2026.xlsx');
 }
 
-function exportPNG(){html2canvas(document.querySelector('.content'),{scale:2,backgroundColor:'#F0EDE8'}).then(canvas=>{const a=document.createElement('a');a.download='alcohol-'+(currentMonth?MONTH_LABELS[currentMonth]:'')+'-2026.png';a.href=canvas.toDataURL('image/png');a.click();});}
+function exportPNG(){html2canvas(document.querySelector('.content'),{scale:2,backgroundColor:'#F7F1EE'}).then(canvas=>{const a=document.createElement('a');a.download='alcohol-'+(currentMonth?MONTH_LABELS[currentMonth]:'')+'-2026.png';a.href=canvas.toDataURL('image/png');a.click();});}
 
 (function init(){
   const months=Object.keys(allData).map(Number).filter(n=>n>0);
