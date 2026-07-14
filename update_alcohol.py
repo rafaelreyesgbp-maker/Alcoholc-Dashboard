@@ -271,6 +271,24 @@ def compute_month(month_num: int, all_month_data: dict) -> dict:
         s["monto"] = round(s["monto"])
         s["omisos"].sort(key=lambda o: o["avg"], reverse=True)
 
+    # Pagadores del mes (todos los que pagaron en el mes vigente)
+    pag_map: dict = {}
+    for r in cur:
+        rfc = r["rfc"]
+        if rfc not in pag_map:
+            pag_map[rfc] = {"rfc": rfc, "contrib": r.get("contrib", ""), "total": 0.0, "periodos": set()}
+        pag_map[rfc]["total"] += r["recaudacion"]
+        if r.get("periodo") and len(str(r["periodo"])) == 6:
+            pag_map[rfc]["periodos"].add(str(r["periodo"]))
+        if not pag_map[rfc]["contrib"] and r.get("contrib"):
+            pag_map[rfc]["contrib"] = r["contrib"]
+
+    pagadores = sorted([
+        {"rfc": v["rfc"], "contrib": v["contrib"], "total": round(v["total"]),
+         "periodos": [_format_period(p) for p in sorted(v["periodos"])]}
+        for v in pag_map.values()
+    ], key=lambda x: -x["total"])
+
     return {
         "mes_label":         MONTH_LABELS[month_num],
         "mes_num":           month_num,
@@ -286,6 +304,7 @@ def compute_month(month_num: int, all_month_data: dict) -> dict:
         "pct_proyeccion":    proyeccion / meta * 100 if meta else 0,
         "segmentos":         segments,
         "omisos":            omisos[:5000],
+        "pagadores":         pagadores,
     }
 
 
@@ -362,28 +381,4 @@ def main():
 
         rows = _parse_alcohol(ws)
         total = sum(r["recaudacion"] for r in rows)
-        print(f"         Registros: {len(rows)}  |  Recaudación: ${total:,.2f}")
-
-        all_month_data.setdefault(month_num, []).extend(rows)
-
-    if not all_month_data:
-        print("\n[WARN] No se procesó ningún archivo. HTML sin cambios.")
-        sys.exit(0)
-
-    print("\nCalculando proyecciones y omisos...")
-    computed = {}
-    for month_num in sorted(all_month_data.keys()):
-        data = compute_month(month_num, all_month_data)
-        computed[str(month_num)] = data   # ← clave = "6", no "202606"
-        print(f"  {MONTH_LABELS[month_num]}: "
-              f"real=${data['acumulado_real']:,.0f}  "
-              f"omisos={data['total_omisos']}  "
-              f"proy=${data['proyeccion_cierre']:,.0f}")
-
-    print("\nActualizando HTML...")
-    update_html(computed, HTML_FILE)
-    print("Listo.")
-
-
-if __name__ == "__main__":
-    main()
+        print(f"         

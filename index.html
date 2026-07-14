@@ -232,7 +232,13 @@ select.month-sel option{background:#fff;color:var(--siife-texto)}
 .search-input:focus{border-color:var(--siife-vino-suave);box-shadow:0 0 0 3px rgba(126,22,59,.10)}
 .seg-filter{min-width:165px}
 .btn-export-tbl{background:linear-gradient(180deg,#1D8A63,#166D4E);border:1px solid #166D4E;color:#fff;padding:8px 14px;box-shadow:0 7px 15px rgba(29,110,67,.16)}
-.table-wrap{border:1px solid var(--siife-borde);border-radius:13px;overflow:hidden}
+.pagadores-wrap{border:1px solid var(--siife-borde);border-radius:13px;max-height:520px;overflow-y:auto;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.pagadores-wrap thead th{position:sticky;top:0;z-index:2}
+.pagadores-wrap table{width:100%}
+.table-topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.export-omisos-btn{display:inline-flex;align-items:center;gap:6px;background:#267E60;color:#fff;border:none;padding:7px 13px;border-radius:10px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
+.export-omisos-btn svg{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.export-omisos-btn:hover{opacity:.85}
 table{font-size:12px}
 thead th{position:static;background:var(--siife-vino-oscuro);padding:11px 12px;font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:.55px}
 thead th:hover{background:var(--siife-vino)}
@@ -254,6 +260,8 @@ tfoot td{border-top:1px solid var(--siife-borde-fuerte)}
   .btn-hdr-exp{flex:1}.kpi-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.kpi-card{padding:14px}.kpi-val{font-size:21px}
   .icon-bubble{width:39px;height:39px}.annual-left{flex:1 1 100%;min-width:0}.section{padding:15px}
   .table-title-bar{align-items:flex-start}.table-header{padding:8px}.search-wrap{min-width:100%}.seg-filter,.btn-export-tbl{flex:1}
+  .pagadores-wrap table{width:auto}
+  .pagadores-wrap td{white-space:nowrap}
 }
 
 
@@ -268,13 +276,6 @@ tfoot td{border-top:1px solid var(--siife-borde-fuerte)}
       <span class="system-caption">Ingeniería Fiscal Estratégica</span>
     </div>
     <h1><span class="imp-label">Bebidas con Contenido Alcohólico</span> · Proyección de Cierre 2026</h1>
-    <div class="sub">Seguimiento de recaudación, proyección y priorización para fortalecer la toma de decisiones.</div>
-    <div class="header-pills" aria-label="Capacidades del dashboard">
-      <span class="header-pill">Proyección</span>
-      <span class="header-pill">Análisis</span>
-      <span class="header-pill">Segmentación</span>
-      <span class="header-pill">Seguimiento estratégico</span>
-    </div>
   </div>
   <div class="header-right">
     <div class="period-wrap">
@@ -282,9 +283,6 @@ tfoot td{border-top:1px solid var(--siife-borde-fuerte)}
       <select class="month-sel" id="monthSel" onchange="switchMonth(+this.value)"></select>
     </div>
     <button class="btn-refresh" id="btnRefresh" onclick="loadFromDrive()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg></span>Actualizar</button>
-    <button class="btn-hdr-exp" onclick="window.print()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></span>PDF</button>
-    <button class="btn-hdr-exp" onclick="exportPNG()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></span>PNG</button>
-    <button class="btn-hdr-exp" onclick="exportExcel()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span>XLS</button>
   </div>
 </div>
 <div class="gold-bar"></div>
@@ -357,9 +355,11 @@ tfoot td{border-top:1px solid var(--siife-borde-fuerte)}
       <select class="seg-filter" id="segFilter" onchange="renderTable()"><option value="">Todos los segmentos</option><option value="alta">Alta</option><option value="media">Media</option><option value="baja">Baja</option><option value="seguimiento">Seguimiento</option></select>
       <button class="btn-export-tbl" onclick="exportExcel()"><span class="btn-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg></span>Exportar Excel</button>
     </div>
-    <div style="overflow-x:auto"><div class="table-wrap"><table><thead id="omisosHead"></thead><tbody id="omisosBody"></tbody><tfoot id="omisosFoot"></tfoot></table></div></div>
+    <div class="pagadores-wrap"><table style="min-width:620px"><thead id="omisosHead"></thead><tbody id="omisosBody"></tbody><tfoot id="omisosFoot"></tfoot></table></div>
     <div class="pagination" id="pagination"></div>
   </div>
+
+  <div id="pagadores-section"></div>
 </div>
 
 <div class="footer"><span>SIIFE · Bebidas con Contenido Alcohólico · Proyección de Cierre 2026</span><span id="footerUpdated"></span></div>
@@ -384,12 +384,14 @@ const MONTH_LABELS = {
 // Año fiscal de trabajo utilizado por la función existente expectedPeriod().
 const YEAR = 2026;
 
-let allData = {"1":{"mes_label":"Enero","mes_num":1,"meta":5971005,"dominant_period":202512,"ref_months":[],"acumulado_real":7509316,"total_omisos":0,"total_esperado":0,"proyeccion_cierre":7509316,"meta_cruzada":true,"pct_acumulado":125.7630164436305,"pct_proyeccion":125.7630164436305,"segmentos":{},"omisos":[]},"2":{"mes_label":"Febrero","mes_num":2,"meta":2033044,"dominant_period":202601,"ref_months":[1],"acumulado_real":3522285,"total_omisos":0,"total_esperado":0,"proyeccion_cierre":3522285,"meta_cruzada":true,"pct_acumulado":173.2517840243497,"pct_proyeccion":173.2517840243497,"segmentos":{},"omisos":[]},"3":{"mes_label":"Marzo","mes_num":3,"meta":2357586,"dominant_period":202602,"ref_months":[1,2],"acumulado_real":2830921,"total_omisos":4,"total_esperado":202447,"proyeccion_cierre":3033368,"meta_cruzada":true,"pct_acumulado":120.07710429227183,"pct_proyeccion":128.66415053363906,"segmentos":{"alta":{"count":4,"monto":202447,"omisos":[{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":2,"avg":197081,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":2736,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":2482,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":148,"nMissing":1,"pending":["Feb-26"],"seg":"alta"}]}},"omisos":[{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":2,"avg":197081,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":2736,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":2482,"nMissing":1,"pending":["Feb-26"],"seg":"alta"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":148,"nMissing":1,"pending":["Feb-26"],"seg":"alta"}]},"4":{"mes_label":"Abril","mes_num":4,"meta":2380846,"dominant_period":202603,"ref_months":[1,2,3],"acumulado_real":3300501,"total_omisos":4,"total_esperado":49482,"proyeccion_cierre":3349983,"meta_cruzada":true,"pct_acumulado":138.62723586489844,"pct_proyeccion":140.70557272498937,"segmentos":{"alta":{"count":1,"monto":38749,"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":3,"avg":38749,"nMissing":1,"pending":["Mar-26"],"seg":"alta"}]},"media":{"count":3,"monto":10733,"omisos":[{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":5473,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":4964,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":296,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"}]}},"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":3,"avg":38749,"nMissing":1,"pending":["Mar-26"],"seg":"alta"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":2,"avg":5473,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":4964,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":2,"avg":296,"nMissing":2,"pending":["Mar-26","Feb-26"],"seg":"media"}]},"5":{"mes_label":"Mayo","mes_num":5,"meta":2204240,"dominant_period":202604,"ref_months":[1,2,3,4],"acumulado_real":3088457,"total_omisos":2,"total_esperado":157,"proyeccion_cierre":3088614,"meta_cruzada":true,"pct_acumulado":140.11437048597247,"pct_proyeccion":140.12149312234604,"segmentos":{"seguimiento":{"count":1,"monto":7446,"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":7446,"nMissing":3,"pending":["Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"}]},"alta":{"count":1,"monto":157,"omisos":[{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":4,"avg":157,"nMissing":1,"pending":["Abr-26"],"seg":"alta"}]}},"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":7446,"nMissing":3,"pending":["Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"},{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":4,"avg":157,"nMissing":1,"pending":["Abr-26"],"seg":"alta"}]},"6":{"mes_label":"Junio","mes_num":6,"meta":2495661,"dominant_period":202605,"ref_months":[1,2,3,4,5],"acumulado_real":3543795,"total_omisos":2,"total_esperado":39242,"proyeccion_cierre":3583037,"meta_cruzada":true,"pct_acumulado":141.9982521664601,"pct_proyeccion":143.57066123964754,"segmentos":{"media":{"count":1,"monto":39242,"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":4,"avg":39242,"nMissing":1,"pending":["May-26"],"seg":"media"}]},"seguimiento":{"count":1,"monto":9928,"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":9928,"nMissing":4,"pending":["May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"}]}},"omisos":[{"rfc":"MMM200716R9A","contrib":"MINISUPER LA MIXTECA 1984 S DE RL DE CV","count":4,"avg":39242,"nMissing":1,"pending":["May-26"],"seg":"media"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":9928,"nMissing":4,"pending":["May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"}]},"7":{"mes_label":"Julio","mes_num":7,"meta":2249735,"dominant_period":202606,"ref_months":[1,2,3,4,5,6],"acumulado_real":1282648,"total_omisos":24,"total_esperado":1907865,"proyeccion_cierre":3190513,"meta_cruzada":true,"pct_acumulado":57.01329267669303,"pct_proyeccion":141.81728070194936,"segmentos":{"alta":{"count":13,"monto":1803236,"omisos":[{"rfc":"NWM9709244W4","contrib":"NUEVA WAL MART DE MEXICO S DE RL DE CV","count":6,"avg":702407,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TCH850701RM1","contrib":"TIENDAS CHEDRAUI SA DE CV","count":6,"avg":407916,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TSO991022PB6","contrib":"TIENDAS SORIANA SA DE CV","count":6,"avg":149772,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"SSF830912738","contrib":"SUPER SAN FRANCISCO DE ASIS SA DE CV","count":6,"avg":142818,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"ADU800131T10","contrib":"ABARROTERA DEL DUERO SA DE CV","count":6,"avg":134199,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"GMY2110131E7","contrib":"GO MART YUC S DE RL DE CV","count":6,"avg":121836,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"OPR240403K11","contrib":"ORUN PROMOTION SA DE CV","count":6,"avg":116492,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"PPA831231GI0","contrib":"PROVEEDORA DEL PANADERO SA DE CV","count":6,"avg":15758,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CSL000915HJ9","contrib":"CASA SANTOS LUGO SA. DE CV.","count":6,"avg":9517,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TPF1011225L1","contrib":"TE LA PONEMOS FACIL SA DE CV","count":6,"avg":2076,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EBE7711037Y5","contrib":"EMBOTELLADORAS BEPENSA SA DE CV","count":6,"avg":286,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"GUSR401216LC3","contrib":"RAUL GUILLERMO GUEVARA SOSA","count":6,"avg":106,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"PEMO610712FY2","contrib":"ORLANDO DE LA CRUZ PERAZA MARTIN","count":6,"avg":53,"nMissing":1,"pending":["Jun-26"],"seg":"alta"}]},"media":{"count":7,"monto":104629,"omisos":[{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":5,"avg":90260,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"BAAG840104PU4","contrib":"GERARDO JOSE BASULTO ANDERE","count":5,"avg":5191,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":4,"avg":3767,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":4,"avg":2940,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"PERA900428DP3","contrib":"ANA KAREN PENICHE ROSADO","count":5,"avg":2261,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":5,"avg":160,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"CKA231113JV6","contrib":"CAVA KASAK SA DE CV","count":5,"avg":50,"nMissing":1,"pending":["Jun-26"],"seg":"media"}]},"seguimiento":{"count":2,"monto":14402,"omisos":[{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":12410,"nMissing":5,"pending":["Jun-26","May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"},{"rfc":"DMA210729D95","contrib":"DESTILADOS DEL MAYAB S DE RL DE CV","count":2,"avg":1992,"nMissing":1,"pending":["Jun-26"],"seg":"seguimiento"}]},"baja":{"count":2,"monto":16178,"omisos":[{"rfc":"CCU920407SL8","contrib":"CENTRO COMERCIAL UMAN S A DE C V","count":3,"avg":8790,"nMissing":2,"pending":["Jun-26","May-26"],"seg":"baja"},{"rfc":"REGA651008EY3","contrib":"ADDY ROSA REJON GONZALEZ","count":3,"avg":7388,"nMissing":1,"pending":["Jun-26"],"seg":"baja"}]}},"omisos":[{"rfc":"NWM9709244W4","contrib":"NUEVA WAL MART DE MEXICO S DE RL DE CV","count":6,"avg":702407,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TCH850701RM1","contrib":"TIENDAS CHEDRAUI SA DE CV","count":6,"avg":407916,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"TSO991022PB6","contrib":"TIENDAS SORIANA SA DE CV","count":6,"avg":149772,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"SSF830912738","contrib":"SUPER SAN FRANCISCO DE ASIS SA DE CV","count":6,"avg":142818,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"ADU800131T10","contrib":"ABARROTERA DEL DUERO SA DE CV","count":6,"avg":134199,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"GMY2110131E7","contrib":"GO MART YUC S DE RL DE CV","count":6,"avg":121836,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"OPR240403K11","contrib":"ORUN PROMOTION SA DE CV","count":6,"avg":116492,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EME910610G1A","contrib":"LA EUROPEA MEXICO SAPI DE C V","count":5,"avg":90260,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"PPA831231GI0","contrib":"PROVEEDORA DEL PANADERO SA DE CV","count":6,"avg":15758,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CACW740424LM0","contrib":"WILBERT ANTONIO CARRIL CABAÑAS","count":2,"avg":12410,"nMissing":5,"pending":["Jun-26","May-26","Abr-26","Mar-26","Feb-26"],"seg":"seguimiento"},{"rfc":"CSL000915HJ9","contrib":"CASA SANTOS LUGO SA. DE CV.","count":6,"avg":9517,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CCU920407SL8","contrib":"CENTRO COMERCIAL UMAN S A DE C V","count":3,"avg":8790,"nMissing":2,"pending":["Jun-26","May-26"],"seg":"baja"},{"rfc":"REGA651008EY3","contrib":"ADDY ROSA REJON GONZALEZ","count":3,"avg":7388,"nMissing":1,"pending":["Jun-26"],"seg":"baja"},{"rfc":"BAAG840104PU4","contrib":"GERARDO JOSE BASULTO ANDERE","count":5,"avg":5191,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"GIS9105308K5","contrib":"GRUPO INDUSTRIAL SANTA CLARA SA CV","count":4,"avg":3767,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"DER900714GB2","contrib":"DESARROLLO EMPRESARIAL RODAS SA DE CV","count":4,"avg":2940,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"PERA900428DP3","contrib":"ANA KAREN PENICHE ROSADO","count":5,"avg":2261,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"TPF1011225L1","contrib":"TE LA PONEMOS FACIL SA DE CV","count":6,"avg":2076,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"DMA210729D95","contrib":"DESTILADOS DEL MAYAB S DE RL DE CV","count":2,"avg":1992,"nMissing":1,"pending":["Jun-26"],"seg":"seguimiento"},{"rfc":"EBE7711037Y5","contrib":"EMBOTELLADORAS BEPENSA SA DE CV","count":6,"avg":286,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"EIKE740529TY0","contrib":"EDWIN ESPINOSA KU","count":5,"avg":160,"nMissing":1,"pending":["Jun-26"],"seg":"media"},{"rfc":"GUSR401216LC3","contrib":"RAUL GUILLERMO GUEVARA SOSA","count":6,"avg":106,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"PEMO610712FY2","contrib":"ORLANDO DE LA CRUZ PERAZA MARTIN","count":6,"avg":53,"nMissing":1,"pending":["Jun-26"],"seg":"alta"},{"rfc":"CKA231113JV6","contrib":"CAVA KASAK SA DE CV","count":5,"avg":50,"nMissing":1,"pending":["Jun-26"],"seg":"media"}]}};
-var lastUpdated = '13/07/2026 23:27';
+let allData = {};
+var lastUpdated = '';
 // ← Rellena con los totales reales de recaudación de alcohol por mes en 2025 (enero a diciembre)
 const PREV_YEAR_TOTALS = [6001186,2078783,2380841,2243791,2185607,2761992,2186365,2443853,2357698,5813472,8328567,4441067];
 let currentMonth=null, allOmisos=[], currentPage=1;
-const PAGE_SIZE=50;
+const PAGE_SIZE=20;
+let pagSearch="", pagPage=1;
+const PAG_PAGE_SIZE=20;
 let sortCol='seg', sortDir=1;
 const SEG_ORDER={alta:1,media:2,seguimiento:3,omisos_totales:4};
 
@@ -672,6 +674,7 @@ function renderDash(data){
   const sg=document.getElementById('segGrid');sg.innerHTML='';
   for(const[key,cfg]of Object.entries(SEG_CONFIG)){const s=(data.segmentos||{})[key];const card=document.createElement('div');card.className='seg-card';card.style.background=cfg.bg;card.style.borderColor=cfg.color;const visual=siifeSegmentVisual(key);card.innerHTML='<div class="seg-card-top">'+siifeBubble(visual.icon,visual.bg,visual.color)+'<span class="seg-badge" style="background:'+cfg.color+'">'+cfg.label+'</span></div><div class="seg-name" style="color:'+cfg.color+'">'+cfg.label+'</div><div class="seg-count">'+(s?s.count:0)+' contribuyentes</div><div class="seg-monto" style="color:'+cfg.color+'">'+(s?fmtK(s.monto):'$0')+'</div>';sg.appendChild(card);}
   allOmisos=data.omisos||[];currentPage=1;renderTable();
+  const pagSec=document.getElementById('pagadores-section');if(pagSec)pagSec.innerHTML=buildPagadores(data);
   if(lastUpdated)document.getElementById('footerUpdated').textContent='Actualizado: '+lastUpdated;
 }
 
@@ -706,7 +709,7 @@ function renderTable(){
 }
 function renderPagination(pages){const c=document.getElementById('pagination');c.innerHTML='';if(pages<=1)return;const add=(label,page,active,disabled)=>{const b=document.createElement('button');b.className='page-btn'+(active?' active':'');b.textContent=label;b.disabled=!!disabled;b.onclick=()=>{currentPage=page;renderTable();};c.appendChild(b);};add('«',1,false,currentPage===1);add('‹',currentPage-1,false,currentPage===1);const s=Math.max(1,currentPage-2),e=Math.min(pages,s+4);for(let p=s;p<=e;p++)add(String(p),p,p===currentPage,false);add('›',currentPage+1,false,currentPage===pages);add('»',pages,false,currentPage===pages);}
 
-function switchMonth(num){const data=allData[String(num)];if(data)renderDash(data);setStatus('Mostrando '+(MONTH_LABELS[num]||num));}
+function switchMonth(num){pagSearch="";pagPage=1;const data=allData[String(num)];if(data)renderDash(data);setStatus('Mostrando '+(MONTH_LABELS[num]||num));}
 function populateMonthSel(){const sel=document.getElementById('monthSel');const months=Object.keys(allData).map(Number).sort((a,b)=>a-b);sel.innerHTML=months.map(n=>'<option value="'+n+'">'+(MONTH_LABELS[n]||n)+'</option>').join('');if(months.length)sel.value=Math.max(...months);}
 function setStatus(msg,type){const bar=document.getElementById('statusBar');bar.className='status-bar'+(type==='error'?' error':type==='updating'?' updating':'');document.getElementById('statusMsg').textContent=msg;document.getElementById('spinner').style.display=type==='updating'?'inline-block':'none';}
 
@@ -776,17 +779,14 @@ function exportExcel(){
 
 function exportPNG(){html2canvas(document.querySelector('.content'),{scale:2,backgroundColor:'#F7F1EE'}).then(canvas=>{const a=document.createElement('a');a.download='alcohol-'+(currentMonth?MONTH_LABELS[currentMonth]:'')+'-2026.png';a.href=canvas.toDataURL('image/png');a.click();});}
 
-(function init(){
-  const months=Object.keys(allData).map(Number).filter(n=>n>0);
-  if(months.length){
-    populateMonthSel();
-    renderDash(allData[String(Math.max(...months))]);
-    if(lastUpdated)document.getElementById('footerUpdated').textContent='Actualizado: '+lastUpdated;
-    setStatus('✓ Datos al '+lastUpdated);
-  }else{
-    setStatus('Sin datos precargados — pulsa Actualizar para cargar desde Drive','error');
-  }
-})();
-</script>
-</body>
-</html>
+function exportPagadoresExcel(){
+  var D=allData[String(currentMonth)];
+  var allPags=(D&&D.pagadores)||[];
+  var q=pagSearch.toLowerCase();
+  var pags=q?allPags.filter(function(p){return p.rfc.toLowerCase().includes(q)||(p.contrib||'').toLowerCase().includes(q);}):allPags;
+  var wsData=[['#','RFC','Contribuyente','Importe Pagado','Periodos Pagados']];
+  pags.forEach(function(p,i){wsData.push([i+1,p.rfc,p.contrib||'',p.total,(p.periodos||[]).join(', ')]);});
+  wsData.push(['','','Total',pags.reduce(function(s,p){return s+p.total;},0),'']);
+  var ws=XLSX.utils.aoa_to_sheet(wsData);
+  ws['!cols']=[{wch:5},{wch:15},{wch:45},{wch:18},{wch:45}];
+  var wb=XLSX.utils.book_new(
