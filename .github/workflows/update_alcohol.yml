@@ -2,8 +2,8 @@ name: Actualizar Dashboard Alcohol
 
 on:
   schedule:
-    # Lunes a viernes, cada hora entre las 8:00 y 16:00 hrs (México UTC-6)
-    - cron: '0 14,15,16,17,18,19,20,21,22 * * 1-5'
+    - cron: '45 0 * * *'   # 18:30 CST todos los días
+    - cron: '05 6 * * *'   # 23:50 CST todos los días
   workflow_dispatch:
 
 jobs:
